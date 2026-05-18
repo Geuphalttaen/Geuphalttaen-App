@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>급할땐 — iOS Screens</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f0eee9;
+  font-family: "Pretendard Variable", "Pretendard", -apple-system, "SF Pro Display", "Apple SD Gothic Neo", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.canvas {
+  min-height: 100vh;
+  padding: 48px 40px 80px;
+}
+.canvas-header {
+  margin-bottom: 56px;
+}
+.canvas-title {
+  font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(0,0,0,0.35); margin-bottom: 10px;
+}
+.canvas-name {
+  font-size: 36px; font-weight: 900; color: #0B0D12;
+  letter-spacing: -0.05em; line-height: 1.1;
+}
+.canvas-sub {
+  font-size: 14px; color: #5F6368; margin-top: 8px; font-weight: 500;
+}
+.section { margin-bottom: 72px; }
+.section-header {
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 2.4px; text-transform: uppercase;
+  color: rgba(0,0,0,0.3); margin-bottom: 6px;
+}
+.section-title {
+  font-size: 20px; font-weight: 800; color: #0B0D12; letter-spacing: -0.03em;
+}
+.section-sub {
+  font-size: 13px; color: #5F6368; margin-top: 4px;
+}
+.artboards {
+  display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start;
+}
+.artboard { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.artboard-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
+  color: rgba(0,0,0,0.35);
+}
+/* iPhone frame */
+.ios-frame {
+  width: 402px; height: 874px;
+  background: #fff;
+  border-radius: 48px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 6px #1a1a1a,
+    0 0 0 8px #2a2a2a,
+    0 30px 60px rgba(0,0,0,0.20);
+  flex-shrink: 0;
+}
+/* Dynamic Island */
+.ios-frame::before {
+  content: "";
+  position: absolute; top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 124px; height: 36px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 50;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+
+// ─────────────────────────────────────────────────────
+// DESIGN TOKENS
+// ─────────────────────────────────────────────────────
+const T = {
+  primary:      '#1A73E8',
+  primary12:    'rgba(26,115,232,0.12)',
+  primary08:    'rgba(26,115,232,0.08)',
+  success:      '#34A853',
+  warning:      '#FBBC04',
+  danger:       '#EA4335',
+  bg:           '#FFFFFF',
+  surface:      '#F8F9FA',
+  surface2:     '#F1F3F4',
+  text1:        '#202124',
+  text2:        '#5F6368',
+  text3:        '#80868B',
+  border:       'rgba(0,0,0,0.08)',
+  borderStrong: 'rgba(0,0,0,0.14)',
+  ink:          '#0B0D12',
+  shadowCard:   '0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+  font: '"Pretendard Variable","Pretendard",-apple-system,"SF Pro Display","SF Pro Text","Apple SD Gothic Neo",system-ui,sans-serif',
+};
+
+// ─────────────────────────────────────────────────────
+// BRAND TILE (logo)
+// ─────────────────────────────────────────────────────
+const BrandTile = ({ size = 88 }) => (
+  <div style={{
+    width: size, height: size, borderRadius: size * 0.22,
+    background: T.ink, color: '#fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 12px 28px rgba(11,13,18,0.25), 0 2px 6px rgba(11,13,18,0.12)',
+    flexShrink: 0,
+  }}>
+    <span style={{
+      fontWeight: 900, fontSize: size * 0.62,
+      letterSpacing: '-0.06em', lineHeight: 1,
+      display: 'inline-flex', alignItems: 'baseline',
+      fontFamily: '"Pretendard","Apple SD Gothic Neo",sans-serif',
+    }}>
+      급
+      <span style={{
+        width: size * 0.10, height: size * 0.10,
+        background: T.primary, borderRadius: '50%',
+        marginLeft: size * 0.02,
+        display: 'inline-block',
+        transform: `translateY(${-size * 0.02}px)`,
+      }} />
+    </span>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────
+// ICON SET
+// ─────────────────────────────────────────────────────
+const Icon = ({ name, size = 24, color = 'currentColor', filled = false, strokeWidth = 1.8 }) => {
+  const s = { width: size, height: size, display: 'block', flexShrink: 0 };
+  const sw = strokeWidth;
+  const sk = { stroke: color, strokeWidth: sw, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const fi = { fill: color };
+  switch (name) {
+    case 'search':
+      return <svg viewBox="0 0 24 24" style={s}><circle cx="11" cy="11" r="7" {...sk}/><path d="M20 20l-3.5-3.5" {...sk}/></svg>;
+    case 'locate':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <circle cx="12" cy="12" r="4" {...sk}/>
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3" {...sk}/>
+        <circle cx="12" cy="12" r="1.5" fill={color}/>
+      </svg>;
+    case 'plus':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M12 5v14M5 12h14" {...sk} strokeWidth={2.2}/></svg>;
+    case 'star':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"
+              fill={filled ? color : 'none'} stroke={color} strokeWidth={1.4} strokeLinejoin="round"/>
+      </svg>;
+    case 'chevron-left':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M15 5l-7 7 7 7" {...sk} strokeWidth={2}/></svg>;
+    case 'chevron-down':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M5 9l7 7 7-7" {...sk} strokeWidth={2}/></svg>;
+    case 'close':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M6 6l12 12M18 6L6 18" {...sk} strokeWidth={2.2}/></svg>;
+    case 'sliders':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h14M20 18h0" {...sk}/>
+        <circle cx="16" cy="6" r="2" {...sk}/><circle cx="8" cy="12" r="2" {...sk}/><circle cx="18" cy="18" r="2" {...sk}/>
+      </svg>;
+    case 'mappin':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z" {...sk}/><circle cx="12" cy="9" r="2.5" {...sk}/></svg>;
+    case 'camera':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M4 8h3l2-2h6l2 2h3v11H4z" {...sk}/><circle cx="12" cy="13.5" r="3.5" {...sk}/></svg>;
+    case 'check':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M5 12l4.5 4.5L19 7" {...sk} strokeWidth={2.2}/></svg>;
+    case 'apple':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <path d="M17.05 12.04c-.03-2.62 2.14-3.88 2.24-3.94-1.22-1.78-3.13-2.03-3.81-2.05-1.62-.16-3.16.95-3.99.95-.83 0-2.1-.93-3.45-.9-1.78.03-3.41 1.03-4.33 2.62-1.85 3.2-.47 7.93 1.33 10.52.88 1.27 1.93 2.69 3.31 2.64 1.33-.05 1.83-.86 3.44-.86 1.6 0 2.06.86 3.45.83 1.43-.02 2.33-1.29 3.2-2.56.99-1.47 1.4-2.9 1.42-2.97-.03-.01-2.72-1.04-2.75-4.13zM14.51 4.41c.73-.89 1.22-2.12 1.09-3.35-1.05.04-2.33.7-3.08 1.58-.67.78-1.27 2.03-1.11 3.24 1.17.09 2.37-.59 3.1-1.47z" fill={color}/>
+      </svg>;
+    case 'kakao':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <path d="M12 4C7 4 3 7.2 3 11.1c0 2.5 1.7 4.7 4.2 6L6 21l4.2-2.5c.6.1 1.2.1 1.8.1 5 0 9-3.2 9-7.1S17 4 12 4z" fill={color}/>
+      </svg>;
+    case 'arrow-up':
+      return <svg viewBox="0 0 24 24" style={s}><path d="M12 19V5M5 12l7-7 7 7" {...sk} strokeWidth={2}/></svg>;
+    case 'wc-male':
+      return <svg viewBox="0 0 24 24" style={s}><circle cx="12" cy="4.5" r="2.2" {...fi}/><path d="M9.2 8h5.6l1.4 6h-2v6h-4.4v-6h-2z" {...fi}/></svg>;
+    case 'wc-female':
+      return <svg viewBox="0 0 24 24" style={s}><circle cx="12" cy="4.5" r="2.2" {...fi}/><path d="M9 8h6l1.6 5.5-2.4.4L13 19h-2v3h-2v-3H7l.8-5.1-2.4-.4z" {...fi}/></svg>;
+    case 'wc-accessible':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <circle cx="11" cy="4" r="2" {...fi}/>
+        <path d="M11 7c-1.5 0-2.5 1-2.5 2.5V14h4l1.5 4.5h2.2L14.5 13H11v-2h3.5V9.2H11z" {...fi}/>
+        <circle cx="11" cy="17.5" r="4.5" stroke={color} strokeWidth="1.6" fill="none"/>
+      </svg>;
+    case 'wc-baby':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <circle cx="12" cy="6" r="2.5" {...fi}/>
+        <path d="M7 12c0-2.5 2-4.5 5-4.5s5 2 5 4.5v3h-2.5v6h-5v-6H7z" {...fi}/>
+        <circle cx="12" cy="5" r="0.7" fill="#fff"/>
+      </svg>;
+    case 'wc-family':
+      return <svg viewBox="0 0 24 24" style={s}>
+        <circle cx="7.5" cy="5" r="1.8" {...fi}/>
+        <circle cx="16.5" cy="5" r="1.8" {...fi}/>
+        <path d="M5 11c0-1.5 1-2.5 2.5-2.5S10 9.5 10 11v3H8.5v6h-2v-6H5z" {...fi}/>
+        <path d="M14 11c0-1.5 1-2.5 2.5-2.5S19 9.5 19 11v3h-1.5v6h-2v-6H14z" {...fi}/>
+        <circle cx="12" cy="13" r="1.2" {...fi}/>
+        <path d="M11 14h2v4h-2z" {...fi}/>
+      </svg>;
+    default: return null;
+  }
+};
+
+// ─────────────────────────────────────────────────────
+// SHARED CHROME
+// ─────────────────────────────────────────────────────
+const StatusBar = ({ dark = false, time = '9:41' }) => {
+  const c = dark ? '#fff' : '#000';
+  return (
+    <div style={{
+      position: 'absolute', top: 0, left: 0, right: 0, height: 54,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '17px 32px 0', zIndex: 100, pointerEvents: 'none',
+      fontFamily: T.font,
+    }}>
+      <div style={{ fontSize: 17, fontWeight: 600, color: c, letterSpacing: -0.3 }}>{time}</div>
+      <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+        {/* Signal */}
+        <svg width="18" height="11" viewBox="0 0 18 11">
+          <rect x="0" y="7" width="3" height="4" rx="0.6" fill={c}/>
+          <rect x="4.5" y="5" width="3" height="6" rx="0.6" fill={c}/>
+          <rect x="9" y="2.5" width="3" height="8.5" rx="0.6" fill={c}/>
+          <rect x="13.5" y="0" width="3" height="11" rx="0.6" fill={c}/>
+        </svg>
+        {/* Wifi */}
+        <svg width="16" height="11" viewBox="0 0 16 11">
+          <path d="M8 3C10 3 12 4 13.5 5.4l1-1C12.7 2.6 10.5 1.5 8 1.5S3.3 2.6 1.5 4.4l1 1C4 4 6 3 8 3z" fill={c}/>
+          <path d="M8 6.5c1.3 0 2.4.5 3.2 1.3l1-1C11 5.7 9.6 5 8 5s-3 .7-4.2 1.8l1 1C5.6 7 6.7 6.5 8 6.5z" fill={c}/>
+          <circle cx="8" cy="9.5" r="1.4" fill={c}/>
+        </svg>
+        {/* Battery */}
+        <svg width="26" height="12" viewBox="0 0 26 12">
+          <rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke={c} strokeOpacity="0.4" fill="none"/>
+          <rect x="2" y="2" width="19" height="8" rx="1.5" fill={c}/>
+          <path d="M24 4v4c.8-.3 1.3-1 1.3-2s-.5-1.7-1.3-2z" fill={c} fillOpacity="0.45"/>
+        </svg>
+      </div>
+    </div>
+  );
+};
+
+const HomeIndicator = ({ dark = false }) => (
+  <div style={{
+    position: 'absolute', bottom: 0, left: 0, right: 0, height: 34,
+    display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    paddingBottom: 8, pointerEvents: 'none', zIndex: 100,
+  }}>
+    <div style={{
+      width: 134, height: 5, borderRadius: 100,
+      background: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.85)',
+    }} />
+  </div>
+);
+
+// ─────────────────────────────────────────────────────
+// SCREEN 1 — MAP
+// ─────────────────────────────────────────────────────
+const PinMarker = ({ status, x, y, selected }) => {
+  const color = status === 'open' ? T.success : status === 'busy' ? T.warning : T.danger;
+  const size = selected ? 56 : 44;
+  return (
+    <div style={{
+      position: 'absolute', left: x, top: y,
+      transform: 'translate(-50%, -100%)',
+      filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.25))',
+      zIndex: selected ? 5 : 1,
+    }}>
+      <svg width={size} height={size * 1.25} viewBox="0 0 40 50">
+        <path d="M20 2C29 2 36 9 36 18C36 28 26 38 20 48C14 38 4 28 4 18C4 9 11 2 20 2z" fill={color}/>
+        <circle cx="20" cy="18" r="11" fill="#fff"/>
+        <text x="20" y="22.5" textAnchor="middle"
+              fontSize="12" fontWeight="800" fill={color}
+              fontFamily="-apple-system, sans-serif">WC</text>
+      </svg>
+    </div>
+  );
+};
+
+const FacilityIconBadge = ({ name, available = true, size = 18 }) => (
+  <div style={{
+    width: 28, height: 28, borderRadius: 8,
+    background: available ? T.primary12 : T.surface2,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  }}>
+    <Icon name={name} size={size} color={available ? T.primary : T.text3} />
+  </div>
+);
+
+const Chip = ({ children, active, style }) => (
+  <div style={{
+    padding: '8px 14px', borderRadius: 999,
+    fontSize: 14, fontWeight: 600,
+    background: active ? T.text1 : '#fff',
+    color: active ? '#fff' : T.text1,
+    boxShadow: active
+      ? '0 2px 6px rgba(0,0,0,0.18)'
+      : '0 1px 3px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.06)',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+    ...style,
+  }}>{children}</div>
+);
+
+const MapScreen = () => (
+  <div style={{
+    width: '100%', height: '100%', position: 'relative',
+    background: T.bg, overflow: 'hidden', fontFamily: T.font, color: T.text1,
+  }}>
+    {/* Faux map background */}
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: '#E8EEF4',
+      backgroundImage: `
+        radial-gradient(ellipse 280px 200px at 80% 30%, #D4E4DA 0%, transparent 60%),
+        radial-gradient(ellipse 320px 240px at 15% 65%, #DAE5DB 0%, transparent 60%),
+        radial-gradient(ellipse 200px 160px at 70% 85%, #E5DCC8 0%, transparent 60%)
+      `,
+    }}>
+      <svg viewBox="0 0 402 874" width="100%" height="100%" preserveAspectRatio="none"
+           style={{ position: 'absolute', inset: 0 }}>
+        <defs>
+          <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+            <path d="M50 0H0V50" fill="none" stroke="rgba(0,0,0,0.025)" strokeWidth="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="402" height="874" fill="url(#grid)"/>
+        <path d="M-20 380 Q 100 360 200 400 T 420 410" stroke="#fff" strokeWidth="22" fill="none"/>
+        <path d="M-20 380 Q 100 360 200 400 T 420 410" stroke="#FCE8B2" strokeWidth="18" fill="none"/>
+        <path d="M180 -20 L 220 900" stroke="#fff" strokeWidth="14" fill="none"/>
+        <path d="M180 -20 L 220 900" stroke="#fff" strokeWidth="11" fill="none"/>
+        <path d="M-20 200 Q 150 220 420 180" stroke="#fff" strokeWidth="6" fill="none" opacity="0.9"/>
+        <path d="M-20 580 Q 180 620 420 600" stroke="#fff" strokeWidth="6" fill="none" opacity="0.9"/>
+        <path d="M-20 720 Q 200 750 420 730" stroke="#fff" strokeWidth="6" fill="none" opacity="0.9"/>
+        <path d="M60 -20 L 80 900" stroke="#fff" strokeWidth="5" fill="none" opacity="0.85"/>
+        <path d="M310 -20 L 330 900" stroke="#fff" strokeWidth="5" fill="none" opacity="0.85"/>
+        {[
+          [30,80,90,80], [140,100,40,50], [240,80,60,90],
+          [40,260,80,70], [240,250,80,80],
+          [30,440,120,80], [240,440,90,70],
+          [40,640,80,50], [240,640,80,70],
+          [30,790,70,40], [260,800,80,40],
+        ].map(([x, y, w, h], i) => (
+          <rect key={i} x={x} y={y} width={w} height={h}
+                fill="rgba(255,255,255,0.55)" rx="3"
+                stroke="rgba(0,0,0,0.04)" strokeWidth="0.5"/>
+        ))}
+        <circle cx="220" cy="400" r="11" fill="#fff" stroke={T.primary} strokeWidth="2.5"/>
+        <text x="220" y="404" textAnchor="middle" fontSize="10" fontWeight="800"
+              fill={T.primary} fontFamily="-apple-system, sans-serif">3</text>
+        <text x="80" y="640" fontSize="11" fontWeight="600" fill="#7A8F7A"
+              fontFamily="-apple-system, sans-serif">서울숲</text>
+      </svg>
+    </div>
+
+    <StatusBar />
+
+    {/* Search bar */}
+    <div style={{
+      position: 'absolute', top: 62, left: 16, right: 16, zIndex: 10,
+      background: '#fff', borderRadius: 14, padding: '10px 14px',
+      display: 'flex', alignItems: 'center', gap: 10,
+      boxShadow: '0 4px 14px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+    }}>
+      <Icon name="locate" size={20} color={T.primary} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 11, color: T.text3, fontWeight: 500, letterSpacing: 0.2 }}>현재 위치</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: T.text1, letterSpacing: -0.3,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          서울 성동구 성수동2가
+        </div>
+      </div>
+      <div style={{ width: 36, height: 36, borderRadius: 10, background: T.surface,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="search" size={18} color={T.text1} />
+      </div>
+    </div>
+
+    {/* Filter chips */}
+    <div style={{
+      position: 'absolute', top: 144, left: 0, right: 0, zIndex: 8,
+      display: 'flex', gap: 8, padding: '0 16px', overflowX: 'auto',
+    }}>
+      <Chip><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <Icon name="sliders" size={14} color="currentColor" /> 필터
+      </span></Chip>
+      <Chip>300m</Chip>
+      <Chip active>500m</Chip>
+      <Chip>1km</Chip>
+      <Chip><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: T.success, display: 'inline-block' }}/>
+        이용가능
+      </span></Chip>
+    </div>
+
+    {/* Pins */}
+    <PinMarker status="open"   x={108} y={310} />
+    <PinMarker status="busy"   x={278} y={285} />
+    <PinMarker status="open"   x={205} y={520} selected />
+    <PinMarker status="closed" x={88}  y={680} />
+    <PinMarker status="open"   x={310} y={620} />
+    <PinMarker status="busy"   x={325} y={420} />
+
+    {/* My location button */}
+    <div style={{
+      position: 'absolute', right: 16, bottom: 348, zIndex: 8,
+      width: 48, height: 48, borderRadius: 14, background: '#fff',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)',
+    }}>
+      <Icon name="locate" size={22} color={T.primary} />
+    </div>
+
+    {/* FAB */}
+    <div style={{
+      position: 'absolute', right: 16, top: 200, zIndex: 8,
+      width: 52, height: 52, borderRadius: 16,
+      background: T.text1, color: '#fff',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: '0 8px 20px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)',
+    }}>
+      <Icon name="plus" size={26} color="#fff" />
+    </div>
+
+    {/* Bottom sheet */}
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 9,
+      background: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+      padding: '14px 20px 36px',
+      boxShadow: '0 -8px 24px rgba(0,0,0,0.08)',
+    }}>
+      <div style={{ width: 40, height: 5, borderRadius: 3,
+                    background: 'rgba(0,0,0,0.12)', margin: '0 auto 16px' }}/>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <div style={{
+          padding: '4px 10px', borderRadius: 999,
+          background: 'rgba(52,168,83,0.12)', color: T.success,
+          fontSize: 12, fontWeight: 700,
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+        }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: T.success }}/>
+          이용 가능
+        </div>
+        <div style={{
+          padding: '4px 10px', borderRadius: 999,
+          border: `1px solid ${T.primary}`, color: T.primary,
+          fontSize: 12, fontWeight: 700,
+        }}>공공</div>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Icon name="star" size={14} color={T.warning} filled />
+          <span style={{ fontSize: 14, fontWeight: 700 }}>4.6</span>
+          <span style={{ fontSize: 12, color: T.text2 }}>(128)</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: T.text1, letterSpacing: -0.5, lineHeight: 1.2 }}>
+            서울숲공원 공중화장실
+          </div>
+          <div style={{ fontSize: 13, color: T.text2, marginTop: 4, letterSpacing: -0.2 }}>
+            성동구 뚝섬로 273
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: T.primary, letterSpacing: -0.6, lineHeight: 1 }}>
+            120<span style={{ fontSize: 14 }}>m</span>
+          </div>
+          <div style={{ fontSize: 11, color: T.text3, fontWeight: 600, marginTop: 2 }}>도보 2분</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+        <FacilityIconBadge name="wc-male" />
+        <FacilityIconBadge name="wc-female" />
+        <FacilityIconBadge name="wc-accessible" />
+        <FacilityIconBadge name="wc-baby" available={false} />
+        <FacilityIconBadge name="wc-family" available={false} />
+        <div style={{ flex: 1 }} />
+        <div style={{
+          padding: '7px 14px', borderRadius: 10,
+          background: T.primary, color: '#fff',
+          fontSize: 14, fontWeight: 700,
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+        }}>
+          <Icon name="mappin" size={15} color="#fff" /> 길찾기
+        </div>
+      </div>
+    </div>
+    <HomeIndicator />
+  </div>
+);
+
+// ─────────────────────────────────────────────────────
+// SCREEN 2 — LIST
+// ─────────────────────────────────────────────────────
+const ListItem = ({ name, addr, dist, rating, reviewCount, facilities, status = 'open', reported = false }) => {
+  const statusColor = status === 'open' ? T.success : status === 'busy' ? T.warning : T.danger;
+  return (
+    <div style={{
+      display: 'flex', gap: 14, padding: '16px 20px',
+      background: '#fff', alignItems: 'center',
+      borderBottom: `1px solid ${T.border}`,
+    }}>
+      <div style={{
+        flexShrink: 0, width: 60, height: 60, borderRadius: 14,
+        background: T.primary08,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        position: 'relative',
+      }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: T.primary, letterSpacing: -0.5, lineHeight: 1 }}>
+          {dist}<span style={{ fontSize: 11 }}>m</span>
+        </div>
+        <div style={{ fontSize: 10, color: T.primary, fontWeight: 600, marginTop: 3, opacity: 0.7 }}>
+          도보 {Math.ceil(parseInt(dist) / 80)}분
+        </div>
+        <div style={{
+          position: 'absolute', top: -3, right: -3,
+          width: 14, height: 14, borderRadius: '50%',
+          background: statusColor, border: '2.5px solid #fff',
+        }}/>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: 15, fontWeight: 700, color: T.text1,
+          letterSpacing: -0.3, lineHeight: 1.2,
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          marginBottom: 4,
+        }}>{name}</div>
+        <div style={{
+          fontSize: 12, color: T.text2,
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          marginBottom: 8,
+        }}>{addr}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Icon name="star" size={12} color={T.warning} filled />
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.text1 }}>{rating}</span>
+            <span style={{ fontSize: 11, color: T.text3 }}>({reviewCount})</span>
+          </div>
+          <div style={{ width: 3, height: 3, borderRadius: '50%', background: T.text3 }}/>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {facilities.map((f, i) => <Icon key={i} name={f} size={14} color={T.text2} />)}
+          </div>
+          <div style={{ flex: 1 }}/>
+          <div style={{
+            padding: '2px 8px', borderRadius: 999,
+            fontSize: 10, fontWeight: 700,
+            border: `1px solid ${reported ? T.borderStrong : T.primary}`,
+            color: reported ? T.text2 : T.primary,
+          }}>{reported ? '제보됨' : '공공'}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ListScreen = () => (
+  <div style={{
+    width: '100%', height: '100%', background: T.surface,
+    fontFamily: T.font, color: T.text1, position: 'relative', overflow: 'hidden',
+  }}>
+    <StatusBar />
+    <div style={{ paddingTop: 62, paddingBottom: 12, background: '#fff', borderBottom: `1px solid ${T.border}` }}>
+      <div style={{ padding: '0 20px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 12, color: T.text3, fontWeight: 600, letterSpacing: 0.2 }}>
+            성수동2가 · 반경 500m
+          </div>
+          <div style={{ fontSize: 26, fontWeight: 800, color: T.text1, letterSpacing: -0.6, lineHeight: 1.1, marginTop: 4 }}>
+            내 주변 화장실 <span style={{ color: T.primary }}>12</span>개
+          </div>
+        </div>
+      </div>
+      <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{
+          padding: '7px 12px', borderRadius: 999, background: T.surface2, color: T.text1,
+          fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4,
+        }}>
+          거리순 <Icon name="chevron-down" size={14} color={T.text1} />
+        </div>
+        <div style={{
+          padding: '7px 12px', borderRadius: 999, background: '#fff', color: T.text2,
+          fontSize: 13, fontWeight: 500, border: `1px solid ${T.border}`,
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+        }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: T.success }}/>
+          이용가능만
+        </div>
+        <div style={{ flex: 1 }}/>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: T.surface2,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="sliders" size={18} color={T.text1} />
+        </div>
+      </div>
+    </div>
+    <div style={{ position: 'absolute', top: 184, left: 0, right: 0, bottom: 34, overflow: 'hidden' }}>
+      <ListItem name="서울숲공원 공중화장실" addr="성동구 뚝섬로 273"
+        dist="120" rating="4.6" reviewCount="128" status="open"
+        facilities={['wc-male','wc-female','wc-accessible']} />
+      <ListItem name="성수역 1번 출구" addr="성동구 아차산로 100"
+        dist="240" rating="4.2" reviewCount="64" status="busy"
+        facilities={['wc-male','wc-female']} />
+      <ListItem name="언더스탠드에비뉴" addr="성동구 왕십리로 63"
+        dist="310" rating="4.8" reviewCount="312" status="open" reported
+        facilities={['wc-male','wc-female','wc-baby','wc-accessible']} />
+      <ListItem name="GS25 성수점" addr="성동구 성수이로 22길 7"
+        dist="380" rating="3.9" reviewCount="22" status="open" reported
+        facilities={['wc-male','wc-female']} />
+      <ListItem name="성수동 주민센터" addr="성동구 성수이로 24"
+        dist="420" rating="4.4" reviewCount="89" status="closed"
+        facilities={['wc-male','wc-female','wc-accessible']} />
+      <ListItem name="뚝섬역 2번 출구" addr="성동구 뚝섬로 50"
+        dist="460" rating="4.1" reviewCount="57" status="open"
+        facilities={['wc-male','wc-female']} />
+    </div>
+    <HomeIndicator />
+  </div>
+);
+
+// ─────────────────────────────────────────────────────
+// SCREEN 3 — DETAIL
+// ─────────────────────────────────────────────────────
+const FacilityCard = ({ name, label, available }) => (
+  <div style={{
+    flex: 1, minWidth: 0, padding: '14px 4px 12px', borderRadius: 14,
+    background: available ? '#fff' : T.surface,
+    border: `1px solid ${available ? T.border : 'transparent'}`,
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+    position: 'relative',
+  }}>
+    <div style={{
+      width: 40, height: 40, borderRadius: 12,
+      background: available ? T.primary12 : 'rgba(0,0,0,0.04)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <Icon name={name} size={24} color={available ? T.primary : T.text3} />
+    </div>
+    <div style={{ fontSize: 11, fontWeight: 600, color: available ? T.text1 : T.text3,
+                  letterSpacing: -0.2, textAlign: 'center' }}>{label}</div>
+    {!available && (
+      <div style={{ position: 'absolute', top: 8, right: 8,
+                    fontSize: 9, fontWeight: 600, color: T.text3,
+                    textTransform: 'uppercase', letterSpacing: 0.4 }}>없음</div>
+    )}
+  </div>
+);
+
+const RatingDonut = ({ avg, distribution }) => {
+  const total = distribution.reduce((a, b) => a + b, 0);
+  const colors = [T.success, '#7CC57B', T.warning, '#F6A85F', T.danger];
+  const R = 50, C = 2 * Math.PI * R;
+  let offset = 0;
+  return (
+    <div style={{ position: 'relative', width: 132, height: 132 }}>
+      <svg width="132" height="132" viewBox="0 0 132 132" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="66" cy="66" r={R} fill="none" stroke={T.surface2} strokeWidth="14"/>
+        {distribution.map((v, i) => {
+          const len = C * (v / total);
+          const el = <circle key={i} cx="66" cy="66" r={R} fill="none"
+                             stroke={colors[i]} strokeWidth="14"
+                             strokeDasharray={`${len} ${C - len}`}
+                             strokeDashoffset={-offset}/>;
+          offset += len + 2;
+          return el;
+        })}
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: 32, fontWeight: 900, color: T.text1, letterSpacing: -1, lineHeight: 1 }}>{avg}</div>
+        <div style={{ fontSize: 11, color: T.text2, fontWeight: 600, marginTop: 2 }}>/ 5.0</div>
+      </div>
+    </div>
+  );
+};
+
+const ReviewCard = ({ author, rating, when, text, helpful }) => (
+  <div style={{ padding: '14px 0', borderBottom: `1px solid ${T.border}` }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+      <div style={{
+        width: 32, height: 32, borderRadius: '50%', background: T.surface2,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 13, fontWeight: 700, color: T.text2,
+      }}>{author[0]}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.text1 }}>{author}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+          <div style={{ display: 'flex', gap: 1 }}>
+            {[1,2,3,4,5].map(i => <Icon key={i} name="star" size={11}
+              color={i <= rating ? T.warning : T.surface2} filled />)}
+          </div>
+          <span style={{ fontSize: 11, color: T.text3 }}>{when}</span>
+        </div>
+      </div>
+    </div>
+    <div style={{ fontSize: 14, color: T.text1, lineHeight: 1.5, letterSpacing: -0.2 }}>{text}</div>
+    {helpful != null && <div style={{ marginTop: 8, fontSize: 11, color: T.text3, fontWeight: 600 }}>도움됨 {helpful}</div>}
+  </div>
+);
+
+const DetailScreen = () => (
+  <div style={{
+    width: '100%', height: '100%', background: T.bg,
+    fontFamily: T.font, color: T.text1, position: 'relative', overflow: 'hidden',
+  }}>
+    <StatusBar />
+    <div style={{
+      position: 'absolute', top: 54, left: 0, right: 0, zIndex: 10,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '8px 12px',
+    }}>
+      {[{ icon: 'chevron-left', size: 20 }, { icon: 'mappin', size: 18 }].map(({ icon, size }, i) => (
+        <div key={i} style={{
+          width: 40, height: 40, borderRadius: 12,
+          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(12px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        }}>
+          <Icon name={icon} size={size} color={T.text1} />
+        </div>
+      ))}
+    </div>
+    <div style={{ position: 'absolute', top: 100, left: 0, right: 0, bottom: 96, overflow: 'hidden' }}>
+      {/* Hero */}
+      <div style={{ padding: '8px 20px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <div style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(52,168,83,0.12)',
+                        color: T.success, fontSize: 11, fontWeight: 700,
+                        display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: T.success }}/>이용 가능
+          </div>
+          <div style={{ padding: '4px 10px', borderRadius: 999,
+                        border: `1px solid ${T.primary}`, color: T.primary, fontSize: 11, fontWeight: 700 }}>공공</div>
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 800, color: T.text1, letterSpacing: -0.7, lineHeight: 1.15 }}>
+          서울숲공원<br/>공중화장실
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+          <Icon name="mappin" size={14} color={T.text2} />
+          <div style={{ fontSize: 13, color: T.text2, letterSpacing: -0.2 }}>성동구 뚝섬로 273</div>
+          <div style={{ width: 3, height: 3, borderRadius: '50%', background: T.text3 }}/>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.primary }}>120m</div>
+        </div>
+      </div>
+      {/* Facilities */}
+      <div style={{ padding: '8px 20px 16px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.primary,
+                      letterSpacing: 1.6, textTransform: 'uppercase', marginBottom: 10 }}>SECTION · 01 · 시설 정보</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <FacilityCard name="wc-male"       label="남성용" available />
+          <FacilityCard name="wc-female"     label="여성용" available />
+          <FacilityCard name="wc-accessible" label="장애인" available />
+          <FacilityCard name="wc-baby"       label="수유실" available={false} />
+          <FacilityCard name="wc-family"     label="가족"   available={false} />
+        </div>
+      </div>
+      {/* Cleanliness */}
+      <div style={{ margin: '0 20px', padding: '18px 20px', borderRadius: 16,
+                    background: T.surface, border: `1px solid ${T.border}` }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.primary,
+                      letterSpacing: 1.6, textTransform: 'uppercase', marginBottom: 12 }}>SECTION · 02 · 청결도</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <RatingDonut avg="4.6" distribution={[82, 28, 12, 4, 2]} />
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {[
+              { star: 5, val: 82, color: T.success },
+              { star: 4, val: 28, color: '#7CC57B' },
+              { star: 3, val: 12, color: T.warning },
+              { star: 2, val: 4,  color: '#F6A85F' },
+              { star: 1, val: 2,  color: T.danger },
+            ].map((r, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, color: T.text2, width: 14, fontWeight: 600 }}>{r.star}</span>
+                <Icon name="star" size={10} color={T.text3} filled />
+                <div style={{ flex: 1, height: 6, background: T.surface2, borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${(r.val / 82) * 100}%`, height: '100%', background: r.color }}/>
+                </div>
+                <span style={{ fontSize: 11, color: T.text2, fontWeight: 600, width: 24, textAlign: 'right' }}>{r.val}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Reviews */}
+      <div style={{ padding: '20px 20px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.primary,
+                        letterSpacing: 1.6, textTransform: 'uppercase' }}>SECTION · 03 · 리뷰 128</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: T.text2 }}>전체보기</div>
+        </div>
+        <ReviewCard author="김민준" rating={5} when="2일 전"
+          text="공원 산책하다 정말 급할 때 살았어요. 비교적 깨끗하고 휴지도 잘 채워져 있습니다." helpful={12} />
+        <ReviewCard author="이서연" rating={4} when="1주 전"
+          text="평일 낮엔 한산해서 좋아요. 주말엔 줄이 길 수 있으니 참고하세요." helpful={5} />
+      </div>
+    </div>
+    {/* Bottom CTA */}
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      padding: '14px 20px 30px',
+      background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)',
+      borderTop: `1px solid ${T.border}`,
+    }}>
+      <div style={{
+        height: 52, borderRadius: 14,
+        background: T.primary, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        fontSize: 16, fontWeight: 700, letterSpacing: -0.3,
+        boxShadow: '0 6px 16px rgba(26,115,232,0.32)',
+      }}>
+        <Icon name="star" size={18} color="#fff" filled /> 리뷰 작성하기
+      </div>
+    </div>
+    <HomeIndicator />
+  </div>
+);
+
+// ─────────────────────────────────────────────────────
+// SCREEN 4 — AUTH
+// ─────────────────────────────────────────────────────
+const AuthScreen = () => (
+  <div style={{
+    width: '100%', height: '100%', background: T.bg,
+    fontFamily: T.font, color: T.text1, position: 'relative', overflow: 'hidden',
+  }}>
+    {/* Backdrop */}
+    <div style={{
+      position: 'absolute', inset: 0, background: T.bg,
+      backgroundImage: `
+        radial-gradient(circle at 20% 12%, rgba(26,115,232,0.10) 0%, transparent 45%),
+        radial-gradient(circle at 80% 90%, rgba(26,115,232,0.06) 0%, transparent 40%),
+        radial-gradient(circle at 50% 100%, rgba(11,13,18,0.04) 0%, transparent 50%)
+      `,
+    }}>
+      <svg viewBox="0 0 402 874" width="100%" height="100%" preserveAspectRatio="none"
+           style={{ position: 'absolute', inset: 0, opacity: 0.4 }}>
+        <defs>
+          <pattern id="auth-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+            <path d="M60 0H0V60" fill="none" stroke="rgba(26,115,232,0.05)" strokeWidth="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="402" height="874" fill="url(#auth-grid)"/>
+        <path d="M-20 220 Q 120 200 240 240 T 420 230" stroke="rgba(26,115,232,0.10)" strokeWidth="22" fill="none"/>
+        <path d="M120 -20 Q 100 200 220 400 T 280 900" stroke="rgba(26,115,232,0.08)" strokeWidth="18" fill="none"/>
+        <g transform="translate(330 160)" opacity="0.16">
+          <path d="M0 -28 C 14 -28 22 -18 22 -8 C 22 6 8 22 0 32 C -8 22 -22 6 -22 -8 C -22 -18 -14 -28 0 -28z" fill="#1A73E8"/>
+          <circle r="8" fill="#fff"/>
+        </g>
+        <g transform="translate(70 720)" opacity="0.12">
+          <path d="M0 -28 C 14 -28 22 -18 22 -8 C 22 6 8 22 0 32 C -8 22 -22 6 -22 -8 C -22 -18 -14 -28 0 -28z" fill="#0B0D12"/>
+          <circle r="8" fill="#fff"/>
+        </g>
+      </svg>
+    </div>
+    <StatusBar />
+    {/* Brand */}
+    <div style={{
+      position: 'absolute', top: 132, left: 0, right: 0,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
+    }}>
+      <BrandTile size={104} />
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          fontFamily: '"Pretendard","Apple SD Gothic Neo",sans-serif',
+          fontSize: 44, fontWeight: 900, color: T.text1,
+          letterSpacing: -0.055 * 44, lineHeight: 1,
+          display: 'inline-flex', alignItems: 'baseline', gap: 2,
+        }}>
+          급할땐
+          <span style={{ width: 9, height: 9, borderRadius: '50%',
+                         background: T.primary, display: 'inline-block',
+                         transform: 'translateY(-2px)' }}/>
+        </div>
+        <div style={{ fontSize: 14, color: T.text2, marginTop: 10, letterSpacing: -0.3, fontWeight: 500 }}>
+          가장 가까운 공중화장실, 지금 바로
+        </div>
+      </div>
+    </div>
+    {/* Login buttons */}
+    <div style={{ position: 'absolute', bottom: 130, left: 24, right: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{
+        height: 56, borderRadius: 12, background: '#FEE500', color: '#191600',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: 10, fontSize: 16, fontWeight: 700, letterSpacing: -0.3,
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)', position: 'relative',
+      }}>
+        <div style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)' }}>
+          <Icon name="kakao" size={22} color="#191600" />
+        </div>
+        카카오로 시작하기
+      </div>
+      <div style={{
+        height: 56, borderRadius: 12, background: '#000', color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: 10, fontSize: 16, fontWeight: 600, letterSpacing: -0.3, position: 'relative',
+      }}>
+        <div style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)' }}>
+          <Icon name="apple" size={22} color="#fff" />
+        </div>
+        Apple로 계속하기
+      </div>
+    </div>
+    <div style={{ position: 'absolute', bottom: 70, left: 0, right: 0, textAlign: 'center' }}>
+      <span style={{ fontSize: 14, color: T.text2, fontWeight: 500, letterSpacing: -0.2,
+                     borderBottom: `1px solid ${T.borderStrong}`, paddingBottom: 2 }}>
+        로그인 없이 둘러보기
+      </span>
+    </div>
+    <HomeIndicator />
+  </div>
+);
+
+// ─────────────────────────────────────────────────────
+// SCREEN 5 — REPORT
+// ─────────────────────────────────────────────────────
+const FieldLabel = ({ children, required }) => (
+  <div style={{ fontSize: 12, fontWeight: 700, color: T.text2, letterSpacing: -0.1, marginBottom: 6,
+                display: 'flex', alignItems: 'center', gap: 4 }}>
+    {children}
+    {required && <span style={{ color: T.danger }}>*</span>}
+  </div>
+);
+
+const TextField = ({ label, placeholder, value, required, trailing }) => (
+  <div>
+    <FieldLabel required={required}>{label}</FieldLabel>
+    <div style={{
+      height: 48, borderRadius: 12,
+      background: T.surface, border: `1px solid ${value ? T.text1 : T.border}`,
+      padding: '0 14px', display: 'flex', alignItems: 'center', gap: 8,
+    }}>
+      <div style={{
+        flex: 1, minWidth: 0, fontSize: 15, fontWeight: value ? 600 : 400,
+        color: value ? T.text1 : T.text3, letterSpacing: -0.3,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+      }}>{value || placeholder}</div>
+      {trailing}
+    </div>
+  </div>
+);
+
+const SegmentedControl = ({ options, selected }) => (
+  <div style={{
+    display: 'grid', gridTemplateColumns: `repeat(${options.length}, 1fr)`,
+    gap: 6, padding: 4, borderRadius: 12, background: T.surface2,
+  }}>
+    {options.map((o, i) => (
+      <div key={i} style={{
+        height: 36, borderRadius: 9,
+        background: o === selected ? '#fff' : 'transparent',
+        color: o === selected ? T.text1 : T.text2,
+        fontSize: 13, fontWeight: o === selected ? 700 : 500,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', letterSpacing: -0.2,
+        boxShadow: o === selected ? '0 1px 3px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.04)' : 'none',
+      }}>{o}</div>
+    ))}
+  </div>
+);
+
+const Checkbox = ({ label, checked, icon }) => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 12,
+    background: checked ? T.primary08 : T.surface,
+    border: `1px solid ${checked ? T.primary : T.border}`,
+  }}>
+    <div style={{
+      width: 22, height: 22, borderRadius: 6,
+      background: checked ? T.primary : '#fff',
+      border: `1.5px solid ${checked ? T.primary : T.borderStrong}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+    }}>
+      {checked && <Icon name="check" size={14} color="#fff" strokeWidth={3} />}
+    </div>
+    {icon && <Icon name={icon} size={18} color={checked ? T.primary : T.text2} />}
+    <div style={{ fontSize: 14, fontWeight: checked ? 700 : 500, color: T.text1, letterSpacing: -0.2 }}>{label}</div>
+  </div>
+);
+
+const ReportScreen = () => (
+  <div style={{
+    width: '100%', height: '100%', background: T.bg,
+    fontFamily: T.font, color: T.text1, position: 'relative', overflow: 'hidden',
+  }}>
+    <StatusBar />
+    <div style={{
+      position: 'absolute', top: 54, left: 0, right: 0, zIndex: 10, background: T.bg,
+      padding: '10px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      borderBottom: `1px solid ${T.border}`,
+    }}>
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.primary, letterSpacing: 1.4 }}>NEW</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: T.text1, letterSpacing: -0.5, marginTop: 2 }}>
+          화장실 위치 제보
+        </div>
+      </div>
+      <div style={{ width: 36, height: 36, borderRadius: 12, background: T.surface,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="close" size={20} color={T.text1} />
+      </div>
+    </div>
+    <div style={{
+      position: 'absolute', top: 148, left: 0, right: 0, bottom: 110,
+      overflow: 'hidden', padding: '20px 20px 24px',
+      display: 'flex', flexDirection: 'column', gap: 18,
+    }}>
+      <TextField label="화장실 이름" required value="성수동 카페 빌라드샬롯" placeholder="예) 서울숲공원 공중화장실" />
+      <TextField label="주소" required value="성동구 성수이로 22길 7"
+        placeholder="주소 검색 또는 지도에서 핀 선택"
+        trailing={
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: T.primary12,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="mappin" size={16} color={T.primary} />
+          </div>
+        }
+      />
+      <div>
+        <FieldLabel required>유형</FieldLabel>
+        <SegmentedControl options={['공공','편의점','카페','기타']} selected="카페" />
+      </div>
+      <div>
+        <FieldLabel>이용 가능 시설</FieldLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <Checkbox label="남성용"  icon="wc-male"       checked />
+          <Checkbox label="여성용"  icon="wc-female"     checked />
+          <Checkbox label="장애인용" icon="wc-accessible" checked={false} />
+          <Checkbox label="수유실"  icon="wc-baby"       checked={false} />
+        </div>
+      </div>
+      <div>
+        <FieldLabel>사진 첨부 <span style={{ color: T.text3, fontWeight: 500, marginLeft: 4 }}>최대 3장</span></FieldLabel>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ width: 80, height: 80, borderRadius: 12, background: T.surface,
+                        border: `1px dashed ${T.borderStrong}`,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: 4, color: T.text3 }}>
+            <Icon name="camera" size={22} color={T.text3} />
+            <div style={{ fontSize: 11, fontWeight: 600 }}>0 / 3</div>
+          </div>
+          <div style={{ flex: 1, padding: '14px 12px', borderRadius: 12, background: T.surface,
+                        fontSize: 12, color: T.text2, lineHeight: 1.5, letterSpacing: -0.2 }}>
+            입구가 잘 보이는 사진을 첨부해 주세요. 다른 사람의 식별 가능한 얼굴이 포함된 사진은 제외됩니다.
+          </div>
+        </div>
+      </div>
+      <div>
+        <FieldLabel>메모</FieldLabel>
+        <div style={{ height: 84, borderRadius: 12, background: T.surface,
+                      border: `1px solid ${T.border}`, padding: 14, position: 'relative' }}>
+          <div style={{ fontSize: 14, color: T.text3, letterSpacing: -0.2, lineHeight: 1.5 }}>
+            예) 가게 이용 손님만 사용 가능, 평일 11–22시 운영
+          </div>
+          <div style={{ position: 'absolute', bottom: 8, right: 12,
+                        fontSize: 11, color: T.text3, fontWeight: 600 }}>0 / 200</div>
+        </div>
+      </div>
+    </div>
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      padding: '12px 20px 30px',
+      background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)',
+      borderTop: `1px solid ${T.border}`,
+      display: 'flex', alignItems: 'center', gap: 12,
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 11, color: T.text3, fontWeight: 600 }}>제보 보상</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: T.text1, letterSpacing: -0.3, marginTop: 1 }}>+50P</div>
+      </div>
+      <div style={{
+        flex: 2, height: 52, borderRadius: 14,
+        background: T.primary, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        fontSize: 16, fontWeight: 700, letterSpacing: -0.3,
+        boxShadow: '0 6px 16px rgba(26,115,232,0.32)',
+      }}>
+        제보 제출하기 <Icon name="arrow-up" size={18} color="#fff" />
+      </div>
+    </div>
+    <HomeIndicator />
+  </div>
+);
+
+// ─────────────────────────────────────────────────────
+// CANVAS LAYOUT
+// ─────────────────────────────────────────────────────
+const Phone = ({ children }) => <div className="ios-frame">{children}</div>;
+
+const App = () => (
+  <div className="canvas">
+    <div className="canvas-header">
+      <div className="canvas-title">Claude Design Handoff</div>
+      <div className="canvas-name">급할땐 — iOS Screens</div>
+      <div className="canvas-sub">5개 핵심 화면 · 지도 / 목록 / 상세 / 로그인 / 제보</div>
+    </div>
+
+    <div className="section">
+      <div className="section-header">
+        <div className="section-label">01 · Core Flow</div>
+        <div className="section-title">주된 사용자 동선</div>
+        <div className="section-sub">지도에서 찾기 → 목록에서 비교 → 상세 보기</div>
+      </div>
+      <div className="artboards">
+        {[
+          { label: '01 · 지도 메인', Screen: MapScreen },
+          { label: '02 · 목록',     Screen: ListScreen },
+          { label: '03 · 상세',     Screen: DetailScreen },
+        ].map(({ label, Screen }) => (
+          <div key={label} className="artboard">
+            <Phone><Screen /></Phone>
+            <div className="artboard-label">{label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="section">
+      <div className="section-header">
+        <div className="section-label">02 · Entry &amp; Contribution</div>
+        <div className="section-title">진입 &amp; 기여 화면</div>
+        <div className="section-sub">앱 진입 로그인과 화장실 제보 플로우</div>
+      </div>
+      <div className="artboards">
+        {[
+          { label: '04 · 로그인',    Screen: AuthScreen },
+          { label: '05 · 제보하기',  Screen: ReportScreen },
+        ].map(({ label, Screen }) => (
+          <div key={label} className="artboard">
+            <Phone><Screen /></Phone>
+            <div className="artboard-label">{label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
