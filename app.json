@@ -3,6 +3,7 @@
     "name": "급할땐",
     "slug": "geuphalttaen",
     "version": "1.0.0",
+    "scheme": "geuphalttaen",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -24,6 +25,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "bundler": "metro",
       "favicon": "./assets/favicon.png"
     }
   }
