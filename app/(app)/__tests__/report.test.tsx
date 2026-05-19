@@ -9,7 +9,10 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-// 로그인 상태 모킹 — 인증된 사용자로 설정
+jest.mock('@/src/features/map/hooks/useLocation', () => ({
+  useLocation: () => ({ lat: 37.5665, lng: 126.978, isLoading: false, error: null }),
+}));
+
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn().mockResolvedValue('mock-token'),
   setItemAsync: jest.fn().mockResolvedValue(undefined),
@@ -32,12 +35,8 @@ jest.mock('expo-router', () => ({
   },
 }));
 
-// authStore 모킹 — 인증 상태 true
 jest.mock('@/src/features/auth/store', () => ({
-  useAuthStore: () => ({
-    isAuthenticated: true,
-    isLoading: false,
-  }),
+  useAuthStore: jest.fn(),
 }));
 
 function createWrapper() {
@@ -56,6 +55,8 @@ function createWrapper() {
 describe('ReportScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const { useAuthStore } = require('@/src/features/auth/store');
+    (useAuthStore as jest.Mock).mockReturnValue({ isAuthenticated: true, isLoading: false });
   });
 
   it('화면 타이틀이 렌더링된다', () => {
@@ -110,7 +111,6 @@ describe('ReportScreen', () => {
     );
     fireEvent.press(screen.getByText('제보 제출하기 ↑'));
     await waitFor(() => {
-      // I3: 첫 번째 인자만 검증 (TanStack Query v5는 context를 두 번째 인자로 전달)
       expect(mockSubmitReport.mock.calls[0][0]).toMatchObject({
         name: '테스트 화장실',
         address: '성동구 테스트로 123',
@@ -123,17 +123,13 @@ describe('ReportScreen', () => {
 describe('ReportScreen (비로그인)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mock('@/src/features/auth/store', () => ({
-      useAuthStore: () => ({
-        isAuthenticated: false,
-        isLoading: false,
-      }),
-    }));
+    const { useAuthStore } = require('@/src/features/auth/store');
+    (useAuthStore as jest.Mock).mockReturnValue({ isAuthenticated: false, isLoading: false });
   });
 
   it('비로그인 시 Redirect 컴포넌트가 로그인 화면을 가리킨다', () => {
-    // 이 테스트는 인증 상태를 false로 덮어써야 하는데, 위 mock이 전역 적용됨
-    // 실제 비로그인 테스트는 별도 모듈로 분리하는 것이 좋음 — 여기서는 UI 렌더링만 확인
-    expect(true).toBeTruthy();
+    render(<ReportScreen />, { wrapper: createWrapper() });
+    expect(screen.getByTestId('redirect')).toBeTruthy();
+    expect(screen.getByText('Redirect to /(auth)/login')).toBeTruthy();
   });
 });

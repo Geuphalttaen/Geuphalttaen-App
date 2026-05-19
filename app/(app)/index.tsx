@@ -11,7 +11,7 @@ import {
 import MapView, { Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ToiletMarker, type MarkerStatus } from '@/src/features/map/components/ToiletMarker';
+import { ToiletMarker } from '@/src/features/map/components/ToiletMarker';
 import { FacilityIcon } from '@/src/features/toilets/components/FacilityIcon';
 import { StatusBadge } from '@/src/features/toilets/components/StatusBadge';
 import { useLocation } from '@/src/features/map/hooks/useLocation';
@@ -21,11 +21,6 @@ import { colors } from '@/src/shared/theme';
 
 const RADIUS_OPTIONS = [300, 500, 1000] as const;
 type RadiusOption = (typeof RADIUS_OPTIONS)[number];
-
-// 화장실 isPublic 상태를 MarkerStatus로 매핑
-function getMarkerStatus(_toilet: ToiletResponse): MarkerStatus {
-  return 'open';
-}
 
 function formatDistance(meters: number | null): string {
   if (meters === null) return '-';
@@ -100,7 +95,7 @@ export default function MapScreen() {
               id={toilet.id}
               lat={toilet.lat}
               lng={toilet.lng}
-              status={getMarkerStatus(toilet)}
+              status="open"
               selected={selectedToilet?.id === toilet.id}
               onPress={handleMarkerPress}
             />
@@ -184,7 +179,7 @@ export default function MapScreen() {
 
           {/* 상태 행 */}
           <View style={styles.sheetStatusRow}>
-            <StatusBadge status={getMarkerStatus(selectedToilet)} />
+            <StatusBadge status="open" />
             <View style={styles.sheetTypeBadge}>
               <Text style={styles.sheetTypeBadgeText}>
                 {selectedToilet.isPublic ? '공공' : '제보됨'}

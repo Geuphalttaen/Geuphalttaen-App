@@ -15,6 +15,7 @@ import { useRouter, Redirect } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/features/auth/store';
 import { submitToiletReport } from '@/src/features/toilets/api';
+import { useLocation } from '@/src/features/map/hooks/useLocation';
 import { colors } from '@/src/shared/theme';
 
 type ToiletType = 'PUBLIC' | 'CONVENIENCE_STORE' | 'CAFE' | 'OTHER';
@@ -89,6 +90,8 @@ export default function ReportScreen() {
   });
   const [memo, setMemo] = useState('');
 
+  const { lat, lng } = useLocation();
+
   const mutation = useMutation({
     mutationFn: submitToiletReport,
     onSuccess: () => {
@@ -114,13 +117,17 @@ export default function ReportScreen() {
       Alert.alert('입력 오류', '주소를 입력해 주세요');
       return;
     }
+    if (lat === null || lng === null) {
+      Alert.alert('위치 오류', '현재 위치를 가져올 수 없습니다. 위치 권한을 허용해 주세요.');
+      return;
+    }
 
     mutation.mutate({
       name: name.trim(),
       address: address.trim(),
       toiletType,
-      lat: 0,
-      lng: 0,
+      lat,
+      lng,
       male: facilities.male,
       female: facilities.female,
       disabled: facilities.disabled,

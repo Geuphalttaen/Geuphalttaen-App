@@ -127,10 +127,10 @@ describe('ListScreen', () => {
     });
   });
 
-  it('이용가능만 필터 버튼이 렌더링된다', async () => {
+  it('공공만 필터 버튼이 렌더링된다', async () => {
     render(<ListScreen />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText('이용가능만')).toBeTruthy();
+      expect(screen.getByText('공공만')).toBeTruthy();
     });
   });
 });

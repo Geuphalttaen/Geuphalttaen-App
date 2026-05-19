@@ -49,9 +49,7 @@ export default function DetailScreen() {
   const { toilet, isLoading, error, refetch } = useToiletDetail(toiletId);
   const { isAuthenticated } = useAuthStore();
 
-  const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
+  const handleBack = () => router.back();
 
   const handleWriteReview = useCallback(() => {
     if (!isAuthenticated) {

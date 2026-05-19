@@ -102,11 +102,11 @@ export default function ListScreen() {
           <TouchableOpacity
             style={[styles.filterBtn, onlyAvailable && styles.filterBtnActive]}
             onPress={() => setOnlyAvailable((v) => !v)}
-            accessibilityLabel="이용가능만 보기"
+            accessibilityLabel="공공화장실만 보기"
           >
             <View style={[styles.availableDot, onlyAvailable && styles.availableDotActive]} />
             <Text style={[styles.filterBtnText, onlyAvailable && styles.filterBtnTextActive]}>
-              이용가능만
+              공공만
             </Text>
           </TouchableOpacity>
         </View>
