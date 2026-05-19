@@ -29,6 +29,7 @@ const mockPush = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: mockBack, push: mockPush }),
+  useLocalSearchParams: () => ({}),
   Redirect: ({ href }: { href: string }) => {
     const { Text } = require('react-native');
     return <Text testID="redirect">{`Redirect to ${href}`}</Text>;
@@ -78,11 +79,10 @@ describe('ReportScreen', () => {
     expect(nameInput.props.value).toBe('테스트 화장실');
   });
 
-  it('주소 텍스트 필드에 입력이 가능하다', () => {
+  it('주소 필드가 비활성화 상태로 렌더링된다', () => {
     render(<ReportScreen />, { wrapper: createWrapper() });
-    const addressInput = screen.getByPlaceholderText('주소 검색 또는 지도에서 핀 선택');
-    fireEvent.changeText(addressInput, '성동구 테스트로 123');
-    expect(addressInput.props.value).toBe('성동구 테스트로 123');
+    const addressInput = screen.getByPlaceholderText('지도에서 핀 선택 시 자동 입력');
+    expect(addressInput.props.editable).toBe(false);
   });
 
   it('닫기 버튼 클릭 시 back이 호출된다', () => {
@@ -99,24 +99,14 @@ describe('ReportScreen', () => {
     expect(screen.getByText('남성용')).toBeTruthy();
   });
 
-  it('이름과 주소 입력 후 제출 시 API가 호출된다', async () => {
+  it('이름 입력 후 주소 없이 제출하면 API가 호출되지 않는다', () => {
     render(<ReportScreen />, { wrapper: createWrapper() });
     fireEvent.changeText(
       screen.getByPlaceholderText('예) 서울숲공원 공중화장실'),
       '테스트 화장실',
     );
-    fireEvent.changeText(
-      screen.getByPlaceholderText('주소 검색 또는 지도에서 핀 선택'),
-      '성동구 테스트로 123',
-    );
     fireEvent.press(screen.getByText('제보 제출하기 ↑'));
-    await waitFor(() => {
-      expect(mockSubmitReport.mock.calls[0][0]).toMatchObject({
-        name: '테스트 화장실',
-        address: '성동구 테스트로 123',
-        toiletType: 'PUBLIC',
-      });
-    });
+    expect(mockSubmitReport).not.toHaveBeenCalled();
   });
 });
 

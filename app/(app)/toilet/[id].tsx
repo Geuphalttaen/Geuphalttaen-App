@@ -9,6 +9,7 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { FacilityIcon } from '@/src/features/toilets/components/FacilityIcon';
@@ -53,6 +54,13 @@ export default function DetailScreen() {
     }
     Alert.alert('리뷰 작성', '리뷰 기능은 곧 제공될 예정입니다.');
   }, [isAuthenticated, router]);
+
+  const handleNavigate = useCallback(() => {
+    if (!toilet) return;
+    const name = encodeURIComponent(toilet.name);
+    const url = `https://map.naver.com/v5/directions/-/${toilet.lng},${toilet.lat},${name}/-/walk?c=${toilet.lng},${toilet.lat},15,0,0,0,dh`;
+    void WebBrowser.openBrowserAsync(url);
+  }, [toilet]);
 
   if (isLoading) {
     return (
@@ -144,6 +152,13 @@ export default function DetailScreen() {
 
       {/* 하단 CTA */}
       <View style={[styles.bottomCta, { paddingBottom: insets.bottom + 14 }]}>
+        <TouchableOpacity
+          style={styles.ctaBtnSecondary}
+          accessibilityLabel="길찾기"
+          onPress={handleNavigate}
+        >
+          <Text style={styles.ctaBtnSecondaryText}>↗ 길찾기</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.ctaBtn}
           accessibilityLabel="리뷰 작성하기"
@@ -353,13 +368,32 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    flexDirection: 'row',
+    gap: 10,
     paddingHorizontal: 20,
     paddingTop: 14,
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  ctaBtnSecondary: {
+    height: 52,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaBtnSecondaryText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: -0.3,
+  },
   ctaBtn: {
+    flex: 1,
     height: 52,
     borderRadius: 14,
     backgroundColor: colors.primary,

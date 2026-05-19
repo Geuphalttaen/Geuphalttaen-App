@@ -8,6 +8,10 @@ export default function AppLayout() {
       <Stack.Screen name="list" />
       <Stack.Screen name="toilet/[id]" />
       <Stack.Screen name="report" options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="location-picker" />
+      <Stack.Screen name="navigate/[id]" />
+      <Stack.Screen name="my-page" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="my-reports" options={{ animation: 'slide_from_right' }} />
     </Stack>
   );
 }

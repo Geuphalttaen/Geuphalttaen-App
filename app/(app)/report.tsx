@@ -1,5 +1,5 @@
 // 화장실 제보 화면 — 인증 가드 포함
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, Redirect } from 'expo-router';
+import { useRouter, Redirect, useLocalSearchParams } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/features/auth/store';
 import { submitToiletReport } from '@/src/features/toilets/api';
@@ -78,6 +78,8 @@ export default function ReportScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  // 위치 픽커에서 넘어온 좌표 파라미터
+  const { pickedLat, pickedLng, pickedAddress } = useLocalSearchParams<{ pickedLat?: string; pickedLng?: string; pickedAddress?: string }>();
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
@@ -89,8 +91,28 @@ export default function ReportScreen() {
     familyRoom: false,
   });
   const [memo, setMemo] = useState('');
+  // 지도에서 선택한 위치 (없으면 GPS 사용)
+  const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const { lat, lng } = useLocation();
+
+  // 픽커 파라미터가 유효하면 위치·주소 업데이트
+  useEffect(() => {
+    if (pickedLat && pickedLng) {
+      const parsedLat = parseFloat(pickedLat);
+      const parsedLng = parseFloat(pickedLng);
+      if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+        setPickedLocation({ lat: parsedLat, lng: parsedLng });
+        if (pickedAddress) {
+          setAddress(pickedAddress);
+        }
+      }
+    }
+  }, [pickedLat, pickedLng, pickedAddress]);
+
+  // 제출에 사용할 최종 좌표: 지도 선택 우선, 없으면 GPS
+  const submitLat = pickedLocation?.lat ?? lat;
+  const submitLng = pickedLocation?.lng ?? lng;
 
   const mutation = useMutation({
     mutationFn: submitToiletReport,
@@ -114,11 +136,11 @@ export default function ReportScreen() {
       return;
     }
     if (!address.trim()) {
-      Alert.alert('입력 오류', '주소를 입력해 주세요');
+      Alert.alert('위치 선택 필요', '지도에서 위치를 선택해 주세요');
       return;
     }
-    if (lat === null || lng === null) {
-      Alert.alert('위치 오류', '현재 위치를 가져올 수 없습니다. 위치 권한을 허용해 주세요.');
+    if (submitLat === null || submitLng === null) {
+      Alert.alert('위치 오류', '위치를 가져올 수 없습니다. 지도에서 직접 선택하거나 위치 권한을 허용해 주세요.');
       return;
     }
 
@@ -126,15 +148,15 @@ export default function ReportScreen() {
       name: name.trim(),
       address: address.trim(),
       toiletType,
-      lat,
-      lng,
+      lat: submitLat,
+      lng: submitLng,
       male: facilities.male,
       female: facilities.female,
       disabled: facilities.disabled,
       familyRoom: facilities.familyRoom,
       memo: memo.trim() || undefined,
     });
-  }, [name, address, toiletType, facilities, memo, mutation, lat, lng]);
+  }, [name, address, toiletType, facilities, memo, mutation, submitLat, submitLng]);
 
   const isSubmitting = mutation.isPending;
 
@@ -182,19 +204,26 @@ export default function ReportScreen() {
           />
         </View>
 
-        {/* 주소 */}
+        {/* 주소 — 핀으로 자동 입력, 직접 수정 불가 */}
         <View style={styles.fieldGroup}>
           <FieldLabel required>주소</FieldLabel>
-          <TextInput
-            style={[styles.textInput, address.length > 0 && styles.textInputFilled]}
-            placeholder="주소 검색 또는 지도에서 핀 선택"
-            placeholderTextColor={colors.text3}
-            value={address}
-            onChangeText={setAddress}
-            maxLength={100}
-            returnKeyType="next"
-            accessibilityLabel="주소 입력"
-          />
+          <View style={styles.addressRow}>
+            <TextInput
+              style={[styles.textInput, styles.textInputDisabled, styles.addressInput, address.length > 0 && styles.textInputFilled]}
+              placeholder="지도에서 핀 선택 시 자동 입력"
+              placeholderTextColor={colors.text3}
+              value={address}
+              editable={false}
+              accessibilityLabel="주소 (자동 입력)"
+            />
+            <TouchableOpacity
+              style={styles.addressPickBtn}
+              onPress={() => router.push('/(app)/location-picker')}
+              accessibilityLabel="지도에서 위치 선택"
+            >
+              <Text style={styles.addressPickBtnText}>지도 선택</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* 유형 */}
@@ -393,6 +422,10 @@ const styles = StyleSheet.create({
     borderColor: colors.text1,
     fontWeight: '600',
   },
+  textInputDisabled: {
+    backgroundColor: colors.surface2,
+    color: colors.text2,
+  },
   segmentedControl: {
     flexDirection: 'row',
     gap: 6,
@@ -588,5 +621,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
     letterSpacing: -0.3,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  addressInput: {
+    flex: 1,
+  },
+  addressPickBtn: {
+    height: 48,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  addressPickBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text1,
+    letterSpacing: -0.2,
   },
 });

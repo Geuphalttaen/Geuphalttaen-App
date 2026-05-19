@@ -13,20 +13,20 @@ jest.mock('expo-location', () => ({
   Accuracy: { Balanced: 3 },
 }));
 
-jest.mock('react-native-maps', () => {
+jest.mock('@mj-studio/react-native-naver-map', () => {
   const { View } = require('react-native');
-  const MockMapView = ({ children }: { children?: React.ReactNode }) => (
+  const MockNaverMapView = ({ children }: { children?: React.ReactNode }) => (
     <View testID="map-view">{children}</View>
   );
-  MockMapView.displayName = 'MockMapView';
-  const MockMarker = ({ children }: { children?: React.ReactNode }) => (
+  MockNaverMapView.displayName = 'MockNaverMapView';
+  const MockMarkerOverlay = ({ children }: { children?: React.ReactNode }) => (
     <View testID="map-marker">{children}</View>
   );
-  MockMarker.displayName = 'MockMarker';
+  MockMarkerOverlay.displayName = 'MockNaverMapMarkerOverlay';
   return {
     __esModule: true,
-    default: MockMapView,
-    Marker: MockMarker,
+    NaverMapView: MockNaverMapView,
+    NaverMapMarkerOverlay: MockMarkerOverlay,
   };
 });
 
