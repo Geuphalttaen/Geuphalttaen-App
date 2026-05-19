@@ -47,7 +47,7 @@ apiClient.interceptors.response.use(
       error.message = serverMessage;
     }
 
-    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
@@ -56,12 +56,17 @@ apiClient.interceptors.response.use(
           router.replace('/(auth)/login');
           return Promise.reject(error);
         }
-        const { data } = await axios.post<{ accessToken: string }>(
+        const { data } = await axios.post(
           `${BASE_URL}/api/v1/auth/refresh`,
           { refreshToken },
         );
-        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, data.accessToken);
-        originalRequest.headers.set('Authorization', `Bearer ${data.accessToken}`);
+        // 서버가 { success, data: { accessToken } } 형식으로 반환
+        const accessToken: unknown = data?.accessToken ?? data;
+        if (typeof accessToken !== 'string') {
+          throw new Error('토큰 갱신 응답이 올바르지 않습니다');
+        }
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+        originalRequest.headers.set('Authorization', `Bearer ${accessToken}`);
         return apiClient(originalRequest);
       } catch {
         await useAuthStore.getState().clearTokens();

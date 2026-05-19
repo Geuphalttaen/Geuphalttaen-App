@@ -31,20 +31,5 @@
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "@react-native-seoul/kakao-login",
-        {
-          "kakaoAppKey": "7707d80273f24eac915d4b06294deab9"
-        }
-      ],
-      [
-        "@mj-studio/react-native-naver-map",
-        {
-          "client_id": "22nnimjo7y"
-        }
-      ],
-      "expo-web-browser"
-    ]
   }
 }

@@ -159,7 +159,7 @@ export default function MyPageScreen() {
             {/* 로그아웃 */}
             <View style={styles.logoutWrap}>
               <View style={styles.sectionCard}>
-                <Row label="로그아웃" danger first last showChevron={false} onPress={handleLogout} />
+                <Row label="로그아웃" danger first last showChevron={false} onPress={() => { void handleLogout(); }} />
               </View>
             </View>
           </>

@@ -59,7 +59,7 @@ export default function DetailScreen() {
     if (!toilet) return;
     const name = encodeURIComponent(toilet.name);
     const url = `https://map.naver.com/v5/directions/-/${toilet.lng},${toilet.lat},${name}/-/walk?c=${toilet.lng},${toilet.lat},15,0,0,0,dh`;
-    WebBrowser.openBrowserAsync(url);
+    void WebBrowser.openBrowserAsync(url);
   }, [toilet]);
 
   if (isLoading) {
