@@ -1,8 +1,8 @@
-// ListScreen 단위 테스트 — Expo Router 기반으로 업데이트
+// ListScreen 단위 테스트
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ListScreen from '../../../app/(app)/list';
+import ListScreen from '../list';
 import { type ToiletResponse } from '@/src/features/toilets/api';
 
 jest.mock('expo-location', () => ({

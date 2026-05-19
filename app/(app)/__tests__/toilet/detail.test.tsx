@@ -1,8 +1,8 @@
-// DetailScreen 단위 테스트 — Expo Router 기반으로 업데이트
+// DetailScreen 단위 테스트
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import DetailScreen from '../../../app/(app)/toilet/[id]';
+import DetailScreen from '../../toilet/[id]';
 import { type ToiletResponse } from '@/src/features/toilets/api';
 
 jest.mock('react-native-safe-area-context', () => ({

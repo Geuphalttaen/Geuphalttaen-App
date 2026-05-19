@@ -1,8 +1,8 @@
-// AuthScreen 단위 테스트 — Expo Router 기반으로 업데이트
+// LoginScreen (AuthScreen) 단위 테스트
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import LoginScreen from '../../../app/(auth)/login';
+import LoginScreen from '../login';
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -42,7 +42,9 @@ jest.mock('expo-router', () => ({
     const { Text } = require('react-native');
     return <Text>{`Redirect to ${href}`}</Text>;
   },
-  Stack: { Screen: () => null },
+  Stack: {
+    Screen: () => null,
+  },
 }));
 
 function createWrapper() {
@@ -58,7 +60,7 @@ function createWrapper() {
   };
 }
 
-describe('AuthScreen', () => {
+describe('LoginScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -73,7 +75,7 @@ describe('AuthScreen', () => {
     expect(screen.getByText('카카오로 시작하기')).toBeTruthy();
   });
 
-  it('둘러보기 버튼 클릭 시 Map 화면으로 이동한다', () => {
+  it('둘러보기 버튼 클릭 시 앱 메인으로 이동한다', () => {
     render(<LoginScreen />, { wrapper: createWrapper() });
     const browseBtn = screen.getByText('로그인 없이 둘러보기');
     fireEvent.press(browseBtn);

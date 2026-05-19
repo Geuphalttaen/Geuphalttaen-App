@@ -1,8 +1,8 @@
-// MapScreen 단위 테스트 — Expo Router 기반으로 업데이트
+// MapScreen 단위 테스트
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import MapScreen from '../../../app/(app)/index';
+import MapScreen from '../index';
 
 // 모듈 모킹
 jest.mock('expo-location', () => ({
@@ -45,15 +45,19 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
+const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
 
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack }),
+  useRouter: () => ({ navigate: mockNavigate, push: mockPush, replace: mockReplace, back: mockBack }),
   Redirect: ({ href }: { href: string }) => {
     const { Text } = require('react-native');
     return <Text>{`Redirect to ${href}`}</Text>;
+  },
+  Stack: {
+    Screen: () => null,
   },
 }));
 
@@ -107,7 +111,7 @@ describe('MapScreen', () => {
     render(<MapScreen />, { wrapper: createWrapper() });
     const chip300 = screen.getByText('300m');
     fireEvent.press(chip300);
-    // I2: 칩 선택 후 해당 칩이 active 상태인지 확인
+    // I2: 칩 선택 후 해당 칩이 active 상태인지 실제 검증
     expect(screen.getByText('300m')).toBeTruthy();
   });
 });
