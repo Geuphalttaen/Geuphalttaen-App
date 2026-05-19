@@ -17,16 +17,11 @@ import { StatusBadge } from '@/src/features/toilets/components/StatusBadge';
 import { useLocation } from '@/src/features/map/hooks/useLocation';
 import { useNearbyToilets } from '@/src/features/map/hooks/useNearbyToilets';
 import { type ToiletResponse } from '@/src/features/toilets/api';
+import { formatDistance } from '@/src/shared/lib/formatDistance';
 import { colors } from '@/src/shared/theme';
 
 const RADIUS_OPTIONS = [300, 500, 1000] as const;
 type RadiusOption = (typeof RADIUS_OPTIONS)[number];
-
-function formatDistance(meters: number | null): string {
-  if (meters === null) return '-';
-  if (meters < 1000) return `${Math.round(meters)}m`;
-  return `${(meters / 1000).toFixed(1)}km`;
-}
 
 export default function MapScreen() {
   const insets = useSafeAreaInsets();

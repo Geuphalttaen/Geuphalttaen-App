@@ -15,13 +15,8 @@ import { FacilityIcon } from '@/src/features/toilets/components/FacilityIcon';
 import { StatusBadge } from '@/src/features/toilets/components/StatusBadge';
 import { useToiletDetail } from '@/src/features/toilets/hooks/useToiletDetail';
 import { useAuthStore } from '@/src/features/auth/store';
+import { formatDistance } from '@/src/shared/lib/formatDistance';
 import { colors } from '@/src/shared/theme';
-
-function formatDistance(meters: number | null): string {
-  if (meters === null) return '';
-  if (meters < 1000) return `${Math.round(meters)}m`;
-  return `${(meters / 1000).toFixed(1)}km`;
-}
 
 interface FacilityCardProps {
   type: 'male' | 'female' | 'disabled' | 'familyRoom';
@@ -116,7 +111,7 @@ export default function DetailScreen() {
           <Text style={styles.heroName}>{toilet.name}</Text>
           <View style={styles.heroAddressRow}>
             <Text style={styles.heroAddress}>{toilet.address}</Text>
-            {distance !== '' && (
+            {toilet.distanceMeters !== null && (
               <>
                 <View style={styles.addressDot} />
                 <Text style={styles.heroDistance}>{distance}</Text>

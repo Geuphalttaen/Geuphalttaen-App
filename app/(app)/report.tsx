@@ -134,7 +134,7 @@ export default function ReportScreen() {
       familyRoom: facilities.familyRoom,
       memo: memo.trim() || undefined,
     });
-  }, [name, address, toiletType, facilities, memo, mutation]);
+  }, [name, address, toiletType, facilities, memo, mutation, lat, lng]);
 
   const isSubmitting = mutation.isPending;
 
