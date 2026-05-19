@@ -79,6 +79,13 @@ export default function ListScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* 상단 헤더 */}
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          accessibilityLabel="뒤로 가기"
+        >
+          <Text style={styles.backBtnText}>←</Text>
+        </TouchableOpacity>
         <View>
           <Text style={styles.headerSubtitle}>반경 500m</Text>
           <Text style={styles.headerTitle}>
@@ -167,12 +174,25 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   header: {
-    paddingTop: 12,
+    paddingTop: 8,
     paddingBottom: 0,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     paddingHorizontal: 20,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+    marginLeft: -4,
+  },
+  backBtnText: {
+    fontSize: 22,
+    color: colors.text1,
+    fontWeight: '400',
   },
   headerSubtitle: {
     fontSize: 12,

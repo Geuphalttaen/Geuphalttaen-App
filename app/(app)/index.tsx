@@ -36,11 +36,20 @@ export default function MapScreen() {
   const mapRef = useRef<NaverMapViewRef>(null);
   const [selectedRadius, setSelectedRadius] = useState<RadiusOption>(500);
   const [selectedToilet, setSelectedToilet] = useState<ToiletResponse | null>(null);
+  // 카메라 중심 좌표 (지도를 움직이면 업데이트)
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
+  // "이 위치에서 검색" 버튼을 눌렀을 때 적용된 검색 기준 좌표
+  const [searchCenter, setSearchCenter] = useState<{ lat: number; lng: number } | null>(null);
 
   const { lat, lng, isLoading: locationLoading, error: locationError } = useLocation();
+
+  // 실제 검색에 사용할 좌표: searchCenter 우선, 없으면 GPS
+  const searchLat = searchCenter?.lat ?? lat;
+  const searchLng = searchCenter?.lng ?? lng;
+
   const { toilets, isLoading: toiletsLoading, error: toiletsError } = useNearbyToilets({
-    lat,
-    lng,
+    lat: searchLat,
+    lng: searchLng,
     radiusMeters: selectedRadius,
   });
 
@@ -51,6 +60,30 @@ export default function MapScreen() {
     },
     [toilets],
   );
+
+  // 카메라가 움직이면 중심 좌표 업데이트
+  const handleCameraChanged = useCallback(
+    (params: { latitude: number; longitude: number }) => {
+      setMapCenter({ lat: params.latitude, lng: params.longitude });
+    },
+    [],
+  );
+
+  // "이 위치에서 검색" 버튼 표시 여부: mapCenter가 현재 검색 기준과 0.001도 이상 차이날 때
+  const baseSearchLat = searchCenter?.lat ?? lat;
+  const baseSearchLng = searchCenter?.lng ?? lng;
+  const showSearchHereBtn =
+    mapCenter !== null &&
+    baseSearchLat !== null &&
+    baseSearchLng !== null &&
+    (Math.abs(mapCenter.lat - baseSearchLat) > 0.001 ||
+      Math.abs(mapCenter.lng - baseSearchLng) > 0.001);
+
+  const handleSearchHere = useCallback(() => {
+    if (mapCenter) {
+      setSearchCenter(mapCenter);
+    }
+  }, [mapCenter]);
 
   const handleMyLocation = useCallback(() => {
     if (lat !== null && lng !== null) {
@@ -87,6 +120,7 @@ export default function MapScreen() {
           isShowCompass={false}
           isShowScaleBar={false}
           isShowZoomControls={false}
+          onCameraChanged={handleCameraChanged}
         >
           {toilets.map((toilet) => (
             <ToiletMarker
@@ -128,6 +162,13 @@ export default function MapScreen() {
         >
           <Text style={styles.searchIconText}>목록</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.searchIconBtn}
+          onPress={() => router.push('/(app)/my-page')}
+          accessibilityLabel="마이페이지"
+        >
+          <Text style={styles.searchIconText}>내 정보</Text>
+        </TouchableOpacity>
       </View>
 
       {/* 반경 필터 칩 */}
@@ -152,6 +193,17 @@ export default function MapScreen() {
         </ScrollView>
       </View>
 
+      {/* 이 위치에서 검색 버튼 */}
+      {showSearchHereBtn && (
+        <TouchableOpacity
+          style={[styles.searchHereBtn, { top: insets.top + 180 }]}
+          onPress={handleSearchHere}
+          accessibilityLabel="이 위치에서 검색"
+        >
+          <Text style={styles.searchHereBtnText}>이 위치에서 검색</Text>
+        </TouchableOpacity>
+      )}
+
       {/* 제보 FAB */}
       <TouchableOpacity
         style={[styles.fab, { top: insets.top + 120 }]}
@@ -167,7 +219,12 @@ export default function MapScreen() {
         onPress={handleMyLocation}
         accessibilityLabel="내 위치로 이동"
       >
-        <Text style={styles.myLocationIcon}>⊙</Text>
+        <View style={styles.locationIcon}>
+          <View style={styles.locationIconRing} />
+          <View style={styles.locationIconDot} />
+          <View style={styles.locationIconLineH} />
+          <View style={styles.locationIconLineV} />
+        </View>
       </TouchableOpacity>
 
       {/* 선택된 화장실 바텀시트 */}
@@ -332,6 +389,27 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: colors.white,
   },
+  searchHereBtn: {
+    position: 'absolute',
+    left: 60,
+    right: 60,
+    zIndex: 9,
+    backgroundColor: colors.white,
+    borderRadius: 999,
+    paddingVertical: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  searchHereBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text1,
+    letterSpacing: -0.3,
+  },
   fab: {
     position: 'absolute',
     right: 16,
@@ -370,9 +448,39 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
-  myLocationIcon: {
-    fontSize: 22,
-    color: colors.primary,
+  locationIcon: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationIconRing: {
+    position: 'absolute',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  locationIconDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.primary,
+  },
+  locationIconLineH: {
+    position: 'absolute',
+    width: 22,
+    height: 2,
+    backgroundColor: colors.primary,
+    borderRadius: 1,
+  },
+  locationIconLineV: {
+    position: 'absolute',
+    width: 2,
+    height: 22,
+    backgroundColor: colors.primary,
+    borderRadius: 1,
   },
   bottomSheet: {
     position: 'absolute',

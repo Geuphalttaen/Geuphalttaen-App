@@ -1,6 +1,8 @@
 // axios 인스턴스 + 인터셉터
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+import { useAuthStore } from '@/src/features/auth/store';
 
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -36,13 +38,22 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  async (error: AxiosError) => {
+  async (error: AxiosError<{ error?: { message?: string } }>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    // 서버 응답의 error.message가 있으면 axios 기본 메시지 대신 사용
+    const serverMessage = error.response?.data?.error?.message;
+    if (serverMessage) {
+      error.message = serverMessage;
+    }
+
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
         if (!refreshToken) {
+          await useAuthStore.getState().clearTokens();
+          router.replace('/(auth)/login');
           return Promise.reject(error);
         }
         const { data } = await axios.post<{ accessToken: string }>(
@@ -53,8 +64,8 @@ apiClient.interceptors.response.use(
         originalRequest.headers.set('Authorization', `Bearer ${data.accessToken}`);
         return apiClient(originalRequest);
       } catch {
-        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+        await useAuthStore.getState().clearTokens();
+        router.replace('/(auth)/login');
         return Promise.reject(error);
       }
     }

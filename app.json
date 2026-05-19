@@ -14,7 +14,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.woni.geuphalttaen"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +23,9 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [],
+      "package": "com.woni.geuphalttaen"
     },
     "web": {
       "bundler": "metro",
@@ -30,11 +33,18 @@
     },
     "plugins": [
       [
+        "@react-native-seoul/kakao-login",
+        {
+          "kakaoAppKey": "7707d80273f24eac915d4b06294deab9"
+        }
+      ],
+      [
         "@mj-studio/react-native-naver-map",
         {
           "client_id": "22nnimjo7y"
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }
