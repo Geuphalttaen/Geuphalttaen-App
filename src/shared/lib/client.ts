@@ -27,9 +27,15 @@ apiClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
-// 응답 인터셉터 — 401 시 토큰 갱신 후 재시도
+// 응답 인터셉터 — ApiResponse 언랩 + 401 시 토큰 갱신 후 재시도
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 서버가 { success, data } 형태로 감싸므로 data 필드를 꺼내 반환
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     if (error.response?.status === 401 && !originalRequest._retry) {
