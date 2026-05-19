@@ -44,7 +44,7 @@
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|expo-router|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@react-native-seoul/kakao-login|react-native-maps|zustand|zod)"
     ],
-    "setupFilesAfterEach": [
+    "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
     ],
     "moduleNameMapper": {
