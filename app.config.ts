@@ -18,5 +18,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-web-browser',
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#0B0D12',
+        resizeMode: 'contain',
+        image: './assets/splash-icon.png',
+      },
+    ],
   ],
 });
