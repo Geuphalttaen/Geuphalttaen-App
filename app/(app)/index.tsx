@@ -1,4 +1,4 @@
-// 지도 메인 화면 — react-native-maps + expo-location
+// 지도 메인 화면 — @mj-studio/react-native-naver-map
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import MapView, { Region } from 'react-native-maps';
+import { NaverMapView, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ToiletMarker } from '@/src/features/map/components/ToiletMarker';
@@ -23,10 +23,17 @@ import { colors } from '@/src/shared/theme';
 const RADIUS_OPTIONS = [300, 500, 1000] as const;
 type RadiusOption = (typeof RADIUS_OPTIONS)[number];
 
+// zoom 14 ≈ 500m 반경 표시
+const RADIUS_TO_ZOOM: Record<RadiusOption, number> = {
+  300: 15,
+  500: 14,
+  1000: 13,
+};
+
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<NaverMapViewRef>(null);
   const [selectedRadius, setSelectedRadius] = useState<RadiusOption>(500);
   const [selectedToilet, setSelectedToilet] = useState<ToiletResponse | null>(null);
 
@@ -47,15 +54,13 @@ export default function MapScreen() {
 
   const handleMyLocation = useCallback(() => {
     if (lat !== null && lng !== null) {
-      const region: Region = {
+      mapRef.current?.animateCameraTo({
         latitude: lat,
         longitude: lng,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      };
-      mapRef.current?.animateToRegion(region, 500);
+        zoom: RADIUS_TO_ZOOM[selectedRadius],
+      });
     }
-  }, [lat, lng]);
+  }, [lat, lng, selectedRadius]);
 
   const handleDetailPress = useCallback(() => {
     if (selectedToilet) {
@@ -66,23 +71,22 @@ export default function MapScreen() {
   const isLoading = locationLoading || toiletsLoading;
   const error = locationError ?? toiletsError?.message ?? null;
 
-  const initialRegion: Region = {
-    latitude: lat ?? 37.5665,
-    longitude: lng ?? 126.978,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  };
-
   return (
     <View style={styles.container}>
       {/* 지도 */}
       {!locationLoading && (
-        <MapView
+        <NaverMapView
           ref={mapRef}
           style={styles.map}
-          initialRegion={initialRegion}
-          showsUserLocation
-          showsMyLocationButton={false}
+          camera={{
+            latitude: lat ?? 37.5665,
+            longitude: lng ?? 126.978,
+            zoom: RADIUS_TO_ZOOM[selectedRadius],
+          }}
+          isShowLocationButton={false}
+          isShowCompass={false}
+          isShowScaleBar={false}
+          isShowZoomControls={false}
         >
           {toilets.map((toilet) => (
             <ToiletMarker
@@ -95,7 +99,7 @@ export default function MapScreen() {
               onPress={handleMarkerPress}
             />
           ))}
-        </MapView>
+        </NaverMapView>
       )}
 
       {/* 로딩 오버레이 */}

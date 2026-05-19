@@ -1,7 +1,7 @@
-// 지도 마커 컴포넌트 — react-native-maps Marker
+// 지도 마커 컴포넌트 — @mj-studio/react-native-naver-map
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Marker } from 'react-native-maps';
+import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { colors } from '@/src/shared/theme';
 
 export type MarkerStatus = 'open' | 'busy' | 'closed';
@@ -21,17 +21,18 @@ const STATUS_COLOR: Record<MarkerStatus, string> = {
   closed: colors.danger,
 };
 
-// I5: tracksViewChanges를 선택 상태에 따라 동적으로 변경
 export function ToiletMarker({ id, lat, lng, status, selected = false, onPress }: ToiletMarkerProps) {
   const pinColor = STATUS_COLOR[status];
   const size = selected ? 52 : 40;
 
   return (
-    <Marker
-      coordinate={{ latitude: lat, longitude: lng }}
-      onPress={() => onPress(id)}
+    <NaverMapMarkerOverlay
+      latitude={lat}
+      longitude={lng}
+      onTap={() => onPress(id)}
       anchor={{ x: 0.5, y: 1 }}
-      tracksViewChanges={selected}
+      width={size}
+      height={size * 1.25}
     >
       <View style={[styles.pinContainer, { width: size, height: size * 1.25 }]}>
         {/* 핀 본체 */}
@@ -43,7 +44,7 @@ export function ToiletMarker({ id, lat, lng, status, selected = false, onPress }
         {/* 핀 꼬리 */}
         <View style={[styles.pinTail, { borderTopColor: pinColor, borderTopWidth: size * 0.3, borderLeftWidth: size * 0.18, borderRightWidth: size * 0.18 }]} />
       </View>
-    </Marker>
+    </NaverMapMarkerOverlay>
   );
 }
 
