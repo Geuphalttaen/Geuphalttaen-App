@@ -113,13 +113,14 @@ export default function LoginScreen() {
           </TouchableOpacity>
         )}
 
-        {/* 로딩 인디케이터 */}
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="small" color={colors.text2} />
-          </View>
-        )}
       </View>
+
+      {/* 전체 화면 로딩 오버레이 */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.white} />
+        </View>
+      )}
 
       {/* 비로그인 둘러보기 */}
       <TouchableOpacity
@@ -255,8 +256,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center',
-    paddingVertical: 4,
+    justifyContent: 'center',
+    zIndex: 100,
   },
   browseLink: {
     marginTop: 20,
