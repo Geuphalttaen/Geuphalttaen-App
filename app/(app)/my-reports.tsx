@@ -244,7 +244,7 @@ export default function MyReportsScreen() {
           renderItem={({ item }) => (
             <ReportCard
               report={item}
-              onPress={() => router.push({ pathname: '/(app)/toilet/[id]', params: { id: item.id } })}
+              onPress={() => router.push({ pathname: '/(app)/toilet/[id]', params: { id: String(item.id) } })}
             />
           )}
           contentContainerStyle={styles.listContent}
