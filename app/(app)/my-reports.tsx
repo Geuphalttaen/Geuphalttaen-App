@@ -65,12 +65,13 @@ const thumbIconStyles = StyleSheet.create({
 
 interface ReportCardProps {
   report: MyReport;
+  onPress: () => void;
 }
 
-function ReportCard({ report }: ReportCardProps) {
+function ReportCard({ report, onPress }: ReportCardProps) {
   const s = STATUS_CONFIG[report.status];
   return (
-    <View style={cardStyles.card}>
+    <TouchableOpacity style={cardStyles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={cardStyles.thumb}>
         <MapPinIcon />
       </View>
@@ -89,7 +90,7 @@ function ReportCard({ report }: ReportCardProps) {
         <View style={[cardStyles.chevronArm, cardStyles.chevronTop]} />
         <View style={[cardStyles.chevronArm, cardStyles.chevronBottom]} />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -240,7 +241,12 @@ export default function MyReportsScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <ReportCard report={item} />}
+          renderItem={({ item }) => (
+            <ReportCard
+              report={item}
+              onPress={() => router.push({ pathname: '/(app)/toilet/[id]', params: { id: String(item.id) } })}
+            />
+          )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />

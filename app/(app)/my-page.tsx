@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Alert,
   StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useMyProfile } from '@/src/features/user/api';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import { colors } from '@/src/shared/theme';
@@ -149,9 +151,8 @@ export default function MyPageScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>설정</Text>
               <View style={styles.sectionCard}>
-                <Row label="알림" first onPress={() => {}} />
-                <Row label="이용 약관" onPress={() => {}} />
-                <Row label="개인정보 처리방침" onPress={() => {}} />
+                <Row label="이용 약관" first onPress={() => { WebBrowser.openBrowserAsync('https://www.notion.so/366fbab2ef7381bebbdccbd0a33bcc2f').catch(() => Alert.alert('오류', '페이지를 열 수 없습니다')); }} />
+                <Row label="개인정보 처리방침" onPress={() => { WebBrowser.openBrowserAsync('https://www.notion.so/366fbab2ef73816d8123d94d8b518f1e').catch(() => Alert.alert('오류', '페이지를 열 수 없습니다')); }} />
                 <Row label="버전 정보" value="v1.0.0" showChevron={false} last />
               </View>
             </View>
