@@ -118,7 +118,7 @@ export default function ReportScreen() {
     mutationFn: submitToiletReport,
     onSuccess: () => {
       Alert.alert('제보 완료', '화장실 제보가 접수되었습니다.\n관리자 검토 후 노출됩니다.', [
-        { text: '확인', onPress: () => router.back() },
+        { text: '확인', onPress: () => router.replace('/(app)') },
       ]);
     },
     onError: (err: Error) => {
@@ -315,10 +315,6 @@ export default function ReportScreen() {
 
       {/* 하단 CTA */}
       <View style={[styles.bottomCta, { paddingBottom: insets.bottom + 12 }]}>
-        <View style={styles.rewardInfo}>
-          <Text style={styles.rewardLabel}>제보 보상</Text>
-          <Text style={styles.rewardAmount}>+50P</Text>
-        </View>
         <TouchableOpacity
           style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
           onPress={handleSubmit}
@@ -585,23 +581,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-  rewardInfo: {
-    flex: 1,
-  },
-  rewardLabel: {
-    fontSize: 11,
-    color: colors.text3,
-    fontWeight: '600',
-  },
-  rewardAmount: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.text1,
-    letterSpacing: -0.3,
-    marginTop: 1,
-  },
   submitBtn: {
-    flex: 2,
+    flex: 1,
     height: 52,
     borderRadius: 14,
     backgroundColor: colors.primary,
