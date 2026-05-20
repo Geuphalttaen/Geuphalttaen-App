@@ -26,10 +26,13 @@ jest.mock('@/src/features/toilets/api', () => ({
 
 const mockBack = jest.fn();
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
+
+const mockLocalSearchParams = jest.fn().mockReturnValue({});
 
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: mockBack, push: mockPush }),
-  useLocalSearchParams: () => ({}),
+  useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace }),
+  useLocalSearchParams: () => mockLocalSearchParams(),
   Redirect: ({ href }: { href: string }) => {
     const { Text } = require('react-native');
     return <Text testID="redirect">{`Redirect to ${href}`}</Text>;
@@ -56,6 +59,7 @@ function createWrapper() {
 describe('ReportScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLocalSearchParams.mockReturnValue({});
     const { useAuthStore } = require('@/src/features/auth/store');
     (useAuthStore as jest.Mock).mockReturnValue({ isAuthenticated: true, isLoading: false });
   });
@@ -97,6 +101,34 @@ describe('ReportScreen', () => {
     const maleCheckbox = screen.getByText('남성용');
     fireEvent.press(maleCheckbox);
     expect(screen.getByText('남성용')).toBeTruthy();
+  });
+
+  it('제보 성공 시 지도 화면으로 replace 이동한다', async () => {
+    mockLocalSearchParams.mockReturnValue({
+      pickedLat: '37.5665',
+      pickedLng: '126.978',
+      pickedAddress: '서울특별시 중구',
+    });
+    mockSubmitReport.mockResolvedValueOnce(undefined);
+
+    const { Alert } = require('react-native');
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _msg, buttons) => {
+      (buttons as Array<{ onPress?: () => void }>)?.[0]?.onPress?.();
+    });
+
+    render(<ReportScreen />, { wrapper: createWrapper() });
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('예) 서울숲공원 공중화장실'),
+      '테스트 화장실',
+    );
+    fireEvent.press(screen.getByText('제보 제출하기 ↑'));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/(app)');
+    });
+
+    alertSpy.mockRestore();
   });
 
   it('이름 입력 후 주소 없이 제출하면 API가 호출되지 않는다', () => {
