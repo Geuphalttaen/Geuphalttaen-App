@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/src/shared/lib/client';
 
 export const UserProfileSchema = z.object({
-  id: z.number(),
   nickname: z.string(),
   provider: z.enum(['KAKAO', 'APPLE']),
   reportCount: z.number(),
