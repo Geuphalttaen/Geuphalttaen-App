@@ -127,10 +127,6 @@ export default function MyPageScreen() {
                 <Text style={styles.statNum}>{profile?.postedCount ?? 0}</Text>
                 <Text style={styles.statLabel}>게시됨</Text>
               </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statNum}>-</Text>
-                <Text style={styles.statLabel}>포인트</Text>
-              </View>
             </View>
 
             {/* 활동 섹션 */}
