@@ -37,6 +37,7 @@ const mockToilet: ToiletResponse = {
   disabled: true,
   familyRoom: false,
   isPublic: true,
+  imageUrls: [],
 };
 
 const mockFetchToiletDetail = jest.fn().mockResolvedValue(mockToilet);

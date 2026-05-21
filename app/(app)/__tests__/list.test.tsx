@@ -46,6 +46,7 @@ const mockToilets: ToiletResponse[] = [
     disabled: true,
     familyRoom: false,
     isPublic: true,
+    imageUrls: [],
   },
   {
     id: 2,
@@ -59,6 +60,7 @@ const mockToilets: ToiletResponse[] = [
     disabled: false,
     familyRoom: false,
     isPublic: true,
+    imageUrls: [],
   },
 ];
 

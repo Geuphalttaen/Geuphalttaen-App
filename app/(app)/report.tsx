@@ -192,7 +192,7 @@ export default function ReportScreen() {
     });
   }, [name, address, toiletType, facilities, memo, mutation, submitLat, submitLng, uploadedImages]);
 
-  const isSubmitting = mutation.isPending;
+  const isSubmitting = mutation.isPending || uploadingCount > 0;
 
   // B4/C2: 비로그인 사용자는 로그인 화면으로 리다이렉트 (모든 훅 호출 후 조건부 반환)
   if (!isAuthenticated) {
@@ -312,7 +312,7 @@ export default function ReportScreen() {
 
         {/* 사진 첨부 */}
         <View style={styles.fieldGroup}>
-          <FieldLabel hint={`최대 3장`}>사진 첨부</FieldLabel>
+          <FieldLabel hint="최대 3장">사진 첨부</FieldLabel>
           <View style={styles.photoRow}>
             {uploadedImages.map((img) => (
               <View key={img.localUri} style={styles.photoThumb}>

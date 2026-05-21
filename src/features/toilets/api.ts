@@ -47,9 +47,7 @@ export const ReportRequestSchema = z.object({
   images: z.array(ImageRefSchema).default([]),
 });
 
-// imageUrls는 백엔드 응답에 항상 포함되지만 타입상 optional로 선언해
-// 기존 테스트 픽스처와의 호환성을 유지한다 (파싱 시 default([]) 적용)
-export type ToiletResponse = Omit<z.infer<typeof ToiletResponseSchema>, 'imageUrls'> & { imageUrls?: string[] };
+export type ToiletResponse = z.infer<typeof ToiletResponseSchema>;
 export type ReportRequest = z.infer<typeof ReportRequestSchema>;
 
 // ─── API 함수 ─────────────────────────────────────────────────
