@@ -9,15 +9,18 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, Redirect, useLocalSearchParams } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/features/auth/store';
-import { submitToiletReport } from '@/src/features/toilets/api';
+import { submitToiletReport, uploadToiletImage } from '@/src/features/toilets/api';
 import { useLocation } from '@/src/features/map/hooks/useLocation';
 import { colors } from '@/src/shared/theme';
 
+type UploadedImage = { localUri: string; url: string; originalUrl: string };
 type ToiletType = 'PUBLIC' | 'CONVENIENCE_STORE' | 'CAFE' | 'OTHER';
 const TOILET_TYPE_LABELS: Record<ToiletType, string> = {
   PUBLIC: '공공',
@@ -91,6 +94,8 @@ export default function ReportScreen() {
     familyRoom: false,
   });
   const [memo, setMemo] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [uploadingCount, setUploadingCount] = useState(0);
   // 지도에서 선택한 위치 (없으면 GPS 사용)
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -130,6 +135,34 @@ export default function ReportScreen() {
     setFacilities((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
+  const handleAddImage = useCallback(async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('권한 필요', '사진 첨부를 위해 사진 라이브러리 접근을 허용해 주세요.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      quality: 0.8,
+      allowsEditing: false,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    setUploadingCount((c) => c + 1);
+    try {
+      const uploaded = await uploadToiletImage(asset.uri, asset.mimeType ?? 'image/jpeg');
+      setUploadedImages((prev) => [...prev, { localUri: asset.uri, ...uploaded }]);
+    } catch {
+      Alert.alert('업로드 실패', '사진 업로드에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setUploadingCount((c) => c - 1);
+    }
+  }, []);
+
+  const removeImage = useCallback((localUri: string) => {
+    setUploadedImages((prev) => prev.filter((img) => img.localUri !== localUri));
+  }, []);
+
   const handleSubmit = useCallback(() => {
     if (!name.trim()) {
       Alert.alert('입력 오류', '화장실 이름을 입력해 주세요');
@@ -155,10 +188,11 @@ export default function ReportScreen() {
       disabled: facilities.disabled,
       familyRoom: facilities.familyRoom,
       memo: memo.trim() || undefined,
+      images: uploadedImages.map(({ url, originalUrl }) => ({ url, originalUrl })),
     });
-  }, [name, address, toiletType, facilities, memo, mutation, submitLat, submitLng]);
+  }, [name, address, toiletType, facilities, memo, mutation, submitLat, submitLng, uploadedImages]);
 
-  const isSubmitting = mutation.isPending;
+  const isSubmitting = mutation.isPending || uploadingCount > 0;
 
   // B4/C2: 비로그인 사용자는 로그인 화면으로 리다이렉트 (모든 훅 호출 후 조건부 반환)
   if (!isAuthenticated) {
@@ -276,19 +310,44 @@ export default function ReportScreen() {
           </View>
         </View>
 
-        {/* 사진 첨부 — MVP: 플레이스홀더 */}
+        {/* 사진 첨부 */}
         <View style={styles.fieldGroup}>
           <FieldLabel hint="최대 3장">사진 첨부</FieldLabel>
           <View style={styles.photoRow}>
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoIcon}>📷</Text>
-              <Text style={styles.photoCount}>0 / 3</Text>
-            </View>
-            <View style={styles.photoHint}>
-              <Text style={styles.photoHintText}>
-                입구가 잘 보이는 사진을 첨부해 주세요. 다른 사람의 식별 가능한 얼굴이 포함된 사진은 제외됩니다.
-              </Text>
-            </View>
+            {uploadedImages.map((img) => (
+              <View key={img.localUri} style={styles.photoThumb}>
+                <Image source={{ uri: img.localUri }} style={styles.photoThumbImg} />
+                <TouchableOpacity
+                  style={styles.photoRemoveBtn}
+                  onPress={() => removeImage(img.localUri)}
+                  accessibilityLabel="사진 제거"
+                >
+                  <Text style={styles.photoRemoveText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {uploadingCount > 0 && (
+              <View style={[styles.photoPlaceholder, styles.photoUploading]}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            )}
+            {uploadedImages.length < 3 && uploadingCount === 0 && (
+              <TouchableOpacity
+                style={styles.photoPlaceholder}
+                onPress={handleAddImage}
+                accessibilityLabel="사진 추가"
+              >
+                <Text style={styles.photoIcon}>📷</Text>
+                <Text style={styles.photoCount}>{uploadedImages.length} / 3</Text>
+              </TouchableOpacity>
+            )}
+            {uploadedImages.length === 0 && (
+              <View style={styles.photoHint}>
+                <Text style={styles.photoHintText}>
+                  입구가 잘 보이는 사진을 첨부해 주세요. 다른 사람의 식별 가능한 얼굴이 포함된 사진은 제외됩니다.
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -624,5 +683,36 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text1,
     letterSpacing: -0.2,
+  },
+  photoThumb: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    flexShrink: 0,
+  },
+  photoThumbImg: {
+    width: 80,
+    height: 80,
+  },
+  photoRemoveBtn: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoRemoveText: {
+    fontSize: 10,
+    color: colors.white,
+    fontWeight: '700',
+  },
+  photoUploading: {
+    borderStyle: 'solid',
   },
 });

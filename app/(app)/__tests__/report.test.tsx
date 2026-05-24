@@ -19,9 +19,16 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('expo-image-picker', () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+  launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true, assets: [] }),
+}));
+
 const mockSubmitReport = jest.fn().mockResolvedValue(undefined);
+const mockUploadImage = jest.fn().mockResolvedValue({ url: 'https://cdn.example.com/img.webp', originalUrl: 'https://cdn.example.com/original.jpg' });
 jest.mock('@/src/features/toilets/api', () => ({
   submitToiletReport: (...args: unknown[]) => mockSubmitReport(...args),
+  uploadToiletImage: (...args: unknown[]) => mockUploadImage(...args),
 }));
 
 const mockBack = jest.fn();
