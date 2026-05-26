@@ -19,6 +19,7 @@ import { useAuthStore } from '@/src/features/auth/store';
 import { submitToiletReport, uploadToiletImage } from '@/src/features/toilets/api';
 import { useLocation } from '@/src/features/map/hooks/useLocation';
 import { colors } from '@/src/shared/theme';
+import ImagePickerModal from '@/src/shared/components/ImagePickerModal';
 
 type UploadedImage = { localUri: string; url: string; originalUrl: string };
 type ToiletType = 'PUBLIC' | 'CONVENIENCE_STORE' | 'CAFE' | 'OTHER';
@@ -96,6 +97,7 @@ export default function ReportScreen() {
   const [memo, setMemo] = useState('');
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [pickerModalVisible, setPickerModalVisible] = useState(false);
   // 지도에서 선택한 위치 (없으면 GPS 사용)
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -135,19 +137,36 @@ export default function ReportScreen() {
     setFacilities((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const handleAddImage = useCallback(async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('권한 필요', '사진 첨부를 위해 사진 라이브러리 접근을 허용해 주세요.');
+  // Low-1: 모든 deps(setPickerModalVisible, setUploadingCount, setUploadedImages)가 useState setter로 항상 안정(stable)하므로 deps 배열 생략 안전
+  const launchPicker = useCallback(async (useCamera: boolean) => {
+    setPickerModalVisible(false);
+    // 모달 슬라이드 다운 애니메이션(~300ms) 완료 후 시스템 다이얼로그 호출
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    if (useCamera) {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '사진 촬영을 위해 카메라 접근을 허용해 주세요.');
+        return;
+      }
+    } else {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '사진 첨부를 위해 사진 라이브러리 접근을 허용해 주세요.');
+        return;
+      }
+    }
+    let result;
+    try {
+      result = useCamera
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: 'images', quality: 0.7 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', quality: 0.7, allowsEditing: false });
+    } catch {
+      Alert.alert('카메라 오류', '카메라를 사용할 수 없습니다. 실기기에서 시도해 주세요.');
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      quality: 0.7,
-      allowsEditing: false,
-    });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
+    // Low-2: fileSize 미제공(일부 Android) 시 스킵 → 서버 20MB 제한이 최종 방어선
     if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
       Alert.alert('파일 크기 초과', '10MB 이하의 사진을 선택해 주세요.');
       return;
@@ -164,6 +183,11 @@ export default function ReportScreen() {
       setUploadingCount((c) => c - 1);
     }
   }, []);
+
+  const handleAddImage = useCallback(() => {
+    if (uploadingCount > 0) return;
+    setPickerModalVisible(true);
+  }, [uploadingCount]);
 
   const removeImage = useCallback((localUri: string) => {
     setUploadedImages((prev) => prev.filter((img) => img.localUri !== localUri));
@@ -377,6 +401,13 @@ export default function ReportScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <ImagePickerModal
+        visible={pickerModalVisible}
+        onCamera={() => launchPicker(true)}
+        onLibrary={() => launchPicker(false)}
+        onClose={() => setPickerModalVisible(false)}
+      />
 
       {/* 하단 CTA */}
       <View style={[styles.bottomCta, { paddingBottom: insets.bottom + 12 }]}>
