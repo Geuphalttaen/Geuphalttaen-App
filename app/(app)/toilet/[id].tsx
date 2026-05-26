@@ -153,10 +153,7 @@ export default function DetailScreen() {
         visible={reviewModalVisible}
         toiletId={toiletId}
         onClose={() => setReviewModalVisible(false)}
-        onSuccess={() => {
-          setReviewModalVisible(false);
-          refetch();
-        }}
+        onSuccess={() => setReviewModalVisible(false)}
       />
 
       {/* 하단 CTA */}

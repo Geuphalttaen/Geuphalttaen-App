@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   StyleSheet,
   Alert,
@@ -51,6 +52,7 @@ export function WriteReviewModal({ visible, toiletId, onClose, onSuccess }: Writ
   };
 
   const handleClose = () => {
+    Keyboard.dismiss();
     setRating(0);
     setContent('');
     setCleanlinessScore(0);

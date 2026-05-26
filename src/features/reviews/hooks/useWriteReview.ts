@@ -14,8 +14,9 @@ export function useWriteReview(toiletId: number) {
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: async ({ rating, content, cleanlinessScore }: WriteReviewParams) => {
       const review = await submitReview(toiletId, rating, content);
+      // 청결도 실패는 리뷰 저장과 독립적으로 처리 — 실패해도 리뷰는 유지
       if (cleanlinessScore !== undefined) {
-        await submitCleanliness(toiletId, cleanlinessScore);
+        await submitCleanliness(toiletId, cleanlinessScore).catch(() => undefined);
       }
       return review;
     },

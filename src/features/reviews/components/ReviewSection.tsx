@@ -1,17 +1,16 @@
-// 리뷰 섹션 — 목록 + 평균 별점
+// 리뷰 섹션 — 목록
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { colors } from '@/src/shared/theme';
 import { useReviews } from '@/src/features/reviews/hooks/useReviews';
 import { ReviewCard } from './ReviewCard';
-import { StarRating } from './StarRating';
 
 interface ReviewSectionProps {
   toiletId: number;
 }
 
 export function ReviewSection({ toiletId }: ReviewSectionProps) {
-  const { page, isLoading } = useReviews(toiletId);
+  const { page, isLoading, error } = useReviews(toiletId);
 
   if (isLoading) {
     return (
@@ -21,13 +20,16 @@ export function ReviewSection({ toiletId }: ReviewSectionProps) {
     );
   }
 
+  if (error) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyText}>리뷰를 불러오지 못했습니다.{'\n'}잠시 후 다시 시도해 주세요.</Text>
+      </View>
+    );
+  }
+
   const reviews = page?.content ?? [];
   const total = page?.totalElements ?? 0;
-
-  const avgRating =
-    reviews.length > 0
-      ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
-      : 0;
 
   if (reviews.length === 0) {
     return (
@@ -39,11 +41,7 @@ export function ReviewSection({ toiletId }: ReviewSectionProps) {
 
   return (
     <View>
-      <View style={styles.summary}>
-        <Text style={styles.avgScore}>{avgRating}</Text>
-        <StarRating value={Math.round(avgRating)} size={18} />
-        <Text style={styles.totalCount}>리뷰 {total}개</Text>
-      </View>
+      <Text style={styles.totalCount}>리뷰 {total}개</Text>
       {reviews.map((review) => (
         <ReviewCard key={review.id} review={review} />
       ))}
@@ -70,24 +68,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  summary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    marginBottom: 4,
-  },
-  avgScore: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text1,
-    letterSpacing: -0.5,
-  },
   totalCount: {
     fontSize: 12,
+    fontWeight: '600',
     color: colors.text3,
-    marginLeft: 4,
+    marginBottom: 4,
   },
 });

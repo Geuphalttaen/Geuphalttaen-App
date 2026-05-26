@@ -13,12 +13,19 @@ export function StarRating({ value, onChange, size = 24 }: StarRatingProps) {
   const isInteractive = onChange !== undefined;
 
   return (
-    <View style={styles.row}>
+    <View style={styles.row} accessibilityRole={isInteractive ? 'radiogroup' : undefined}>
       {[1, 2, 3, 4, 5].map((star) => {
         const filled = star <= value;
         if (isInteractive) {
           return (
-            <TouchableOpacity key={star} onPress={() => onChange(star)} activeOpacity={0.7}>
+            <TouchableOpacity
+              key={star}
+              onPress={() => onChange(star)}
+              activeOpacity={0.7}
+              accessibilityRole="radio"
+              accessibilityLabel={`${star}점`}
+              accessibilityState={{ checked: filled }}
+            >
               <Text style={[styles.star, { fontSize: size, color: filled ? colors.warning : colors.border }]}>
                 ★
               </Text>
@@ -43,7 +50,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 2,
   },
-  star: {
-    lineHeight: undefined,
-  },
+  star: {},
 });

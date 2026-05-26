@@ -9,7 +9,7 @@ export const ReviewResponseSchema = z.object({
   userId: z.number(),
   rating: z.number().min(1).max(5),
   content: z.string().nullable().optional(),
-  createdAt: z.string(),
+  createdAt: z.string().datetime({ offset: true }),
 });
 export type ReviewResponse = z.infer<typeof ReviewResponseSchema>;
 
