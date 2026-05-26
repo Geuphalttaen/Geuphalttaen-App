@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Alert,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -15,6 +14,8 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import { colors } from '@/src/shared/theme';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
+import KakaoLoginButton from '@/src/features/auth/components/KakaoLoginButton';
+import AppleLoginButton from '@/src/features/auth/components/AppleLoginButton';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -25,7 +26,6 @@ export default function LoginScreen() {
   const handleKakaoLogin = useCallback(async () => {
     try {
       setIsLoading(true);
-      // 정적 임포트 — @react-native-seoul/kakao-login
       const result = await kakaoLogin();
       await loginWithKakao(result.accessToken);
       router.replace('/(app)');
@@ -53,7 +53,6 @@ export default function LoginScreen() {
       router.replace('/(app)');
     } catch (err) {
       if (err instanceof Error && (err as { code?: string }).code === 'ERR_REQUEST_CANCELED') {
-        // 사용자가 취소한 경우 무시
         return;
       }
       const message = err instanceof Error ? err.message : 'Apple 로그인에 실패했습니다';
@@ -71,13 +70,10 @@ export default function LoginScreen() {
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       {/* 브랜드 블록 */}
       <View style={styles.brandBlock}>
-        {/* 브랜드 타일 */}
         <View style={styles.brandTile}>
           <Text style={styles.brandTileText}>급</Text>
           <View style={styles.brandTileDot} />
         </View>
-
-        {/* 워드마크 */}
         <View style={styles.wordmark}>
           <View style={styles.wordmarkRow}>
             <Text style={styles.wordmarkText}>급할땐</Text>
@@ -89,30 +85,8 @@ export default function LoginScreen() {
 
       {/* 로그인 버튼 영역 */}
       <View style={styles.authButtons}>
-        {/* 카카오 로그인 */}
-        <TouchableOpacity
-          style={styles.kakaoBtn}
-          onPress={handleKakaoLogin}
-          disabled={isLoading}
-          accessibilityLabel="카카오로 시작하기"
-        >
-          <Text style={styles.kakaoBtnIcon}>K</Text>
-          <Text style={styles.kakaoBtnText}>카카오로 시작하기</Text>
-        </TouchableOpacity>
-
-        {/* Apple 로그인 (iOS만) */}
-        {Platform.OS === 'ios' && (
-          <TouchableOpacity
-            style={styles.appleBtn}
-            onPress={handleAppleLogin}
-            disabled={isLoading}
-            accessibilityLabel="Apple로 계속하기"
-          >
-            <Text style={styles.appleBtnIcon}></Text>
-            <Text style={styles.appleBtnText}>Apple로 계속하기</Text>
-          </TouchableOpacity>
-        )}
-
+        <KakaoLoginButton onPress={handleKakaoLogin} disabled={isLoading} />
+        <AppleLoginButton onPress={handleAppleLogin} disabled={isLoading} />
       </View>
 
       {/* 전체 화면 로딩 오버레이 */}
@@ -209,51 +183,6 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 24,
     gap: 10,
-  },
-  kakaoBtn: {
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: colors.kakao,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    position: 'relative',
-  },
-  kakaoBtnIcon: {
-    position: 'absolute',
-    left: 22,
-    fontSize: 20,
-    fontWeight: '900',
-    color: colors.kakaoText,
-  },
-  kakaoBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.kakaoText,
-    letterSpacing: -0.3,
-  },
-  appleBtn: {
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: colors.black,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    position: 'relative',
-  },
-  appleBtnIcon: {
-    position: 'absolute',
-    left: 22,
-    fontSize: 20,
-    color: colors.white,
-  },
-  appleBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.white,
-    letterSpacing: -0.3,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
