@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActionSheetIOS,
   ActivityIndicator,
+  Platform,
   StyleSheet,
   Image,
 } from 'react-native';
@@ -135,17 +137,23 @@ export default function ReportScreen() {
     setFacilities((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const handleAddImage = useCallback(async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('권한 필요', '사진 첨부를 위해 사진 라이브러리 접근을 허용해 주세요.');
-      return;
+  const launchPicker = useCallback(async (useCamera: boolean) => {
+    if (useCamera) {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '사진 촬영을 위해 카메라 접근을 허용해 주세요.');
+        return;
+      }
+    } else {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '사진 첨부를 위해 사진 라이브러리 접근을 허용해 주세요.');
+        return;
+      }
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      quality: 0.7,
-      allowsEditing: false,
-    });
+    const result = useCamera
+      ? await ImagePicker.launchCameraAsync({ mediaTypes: 'images', quality: 0.7 })
+      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', quality: 0.7, allowsEditing: false });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
     if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
@@ -164,6 +172,24 @@ export default function ReportScreen() {
       setUploadingCount((c) => c - 1);
     }
   }, []);
+
+  const handleAddImage = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ['취소', '카메라', '앨범에서 선택'], cancelButtonIndex: 0 },
+        (idx) => {
+          if (idx === 1) launchPicker(true);
+          else if (idx === 2) launchPicker(false);
+        }
+      );
+    } else {
+      Alert.alert('사진 첨부', '', [
+        { text: '카메라', onPress: () => launchPicker(true) },
+        { text: '앨범에서 선택', onPress: () => launchPicker(false) },
+        { text: '취소', style: 'cancel' },
+      ]);
+    }
+  }, [launchPicker]);
 
   const removeImage = useCallback((localUri: string) => {
     setUploadedImages((prev) => prev.filter((img) => img.localUri !== localUri));
