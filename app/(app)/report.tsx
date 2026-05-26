@@ -139,6 +139,8 @@ export default function ReportScreen() {
 
   const launchPicker = useCallback(async (useCamera: boolean) => {
     setPickerModalVisible(false);
+    // 모달 슬라이드 다운 애니메이션(~300ms) 완료 후 시스템 다이얼로그 호출
+    await new Promise((resolve) => setTimeout(resolve, 350));
     if (useCamera) {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
@@ -181,8 +183,9 @@ export default function ReportScreen() {
   }, []);
 
   const handleAddImage = useCallback(() => {
+    if (uploadingCount > 0) return;
     setPickerModalVisible(true);
-  }, []);
+  }, [uploadingCount]);
 
   const removeImage = useCallback((localUri: string) => {
     setUploadedImages((prev) => prev.filter((img) => img.localUri !== localUri));
