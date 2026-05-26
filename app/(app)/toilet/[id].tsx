@@ -1,14 +1,14 @@
 // 화장실 상세 화면
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   StyleSheet,
 } from 'react-native';
+
 import * as WebBrowser from 'expo-web-browser';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -18,6 +18,8 @@ import { useToiletDetail } from '@/src/features/toilets/hooks/useToiletDetail';
 import { useAuthStore } from '@/src/features/auth/store';
 import { formatDistance } from '@/src/shared/lib/formatDistance';
 import { colors } from '@/src/shared/theme';
+import { ReviewSection } from '@/src/features/reviews/components/ReviewSection';
+import { WriteReviewModal } from '@/src/features/reviews/components/WriteReviewModal';
 
 interface FacilityCardProps {
   type: 'male' | 'female' | 'disabled' | 'familyRoom';
@@ -44,6 +46,7 @@ export default function DetailScreen() {
   const toiletId = Number(id);
   const { toilet, isLoading, error, refetch } = useToiletDetail(toiletId);
   const { isAuthenticated } = useAuthStore();
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
 
   const handleBack = () => router.back();
 
@@ -52,7 +55,7 @@ export default function DetailScreen() {
       router.push('/(auth)/login');
       return;
     }
-    Alert.alert('리뷰 작성', '리뷰 기능은 곧 제공될 예정입니다.');
+    setReviewModalVisible(true);
   }, [isAuthenticated, router]);
 
   const handleNavigate = useCallback(() => {
@@ -139,16 +142,19 @@ export default function DetailScreen() {
           </View>
         </View>
 
-        {/* 섹션 02 — 리뷰 안내 (MVP: 정적 텍스트) */}
+        {/* 섹션 02 — 리뷰 */}
         <View style={styles.reviewSection}>
           <Text style={styles.sectionLabel}>SECTION · 02 · 리뷰</Text>
-          <View style={styles.reviewPlaceholder}>
-            <Text style={styles.reviewPlaceholderText}>
-              아직 리뷰가 없습니다.{'\n'}첫 번째 리뷰를 남겨보세요!
-            </Text>
-          </View>
+          <ReviewSection toiletId={toiletId} />
         </View>
       </ScrollView>
+
+      <WriteReviewModal
+        visible={reviewModalVisible}
+        toiletId={toiletId}
+        onClose={() => setReviewModalVisible(false)}
+        onSuccess={() => setReviewModalVisible(false)}
+      />
 
       {/* 하단 CTA */}
       <View style={[styles.bottomCta, { paddingBottom: insets.bottom + 14 }]}>
@@ -348,20 +354,6 @@ const styles = StyleSheet.create({
   reviewSection: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-  },
-  reviewPlaceholder: {
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-  },
-  reviewPlaceholderText: {
-    fontSize: 14,
-    color: colors.text2,
-    textAlign: 'center',
-    lineHeight: 22,
   },
   bottomCta: {
     position: 'absolute',
