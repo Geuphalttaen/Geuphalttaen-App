@@ -17,13 +17,23 @@ import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import { colors } from '@/src/shared/theme';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 
-// KakaoTalk 말풍선 브랜드 마크
 function KakaoMark({ size = 21 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 2C6.477 2 2 5.925 2 10.76c0 3.026 1.864 5.683 4.69 7.228L5.5 22l3.75-2.01c.886.157 1.79.24 2.75.24 5.523 0 10-3.924 10-8.76C22 5.925 17.523 2 12 2z"
         fill="rgba(25,12,0,0.88)"
+      />
+    </Svg>
+  );
+}
+
+function AppleMark({ size = 21 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"
+        fill="white"
       />
     </Svg>
   );
@@ -110,15 +120,19 @@ export default function LoginScreen() {
           <Text style={styles.kakaoBtnText}>카카오로 시작하기</Text>
         </TouchableOpacity>
 
-        {/* Apple 로그인 (iOS만) — 공식 Apple 버튼 컴포넌트 */}
+        {/* Apple 로그인 (iOS만) */}
         {Platform.OS === 'ios' && (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={12}
+          <TouchableOpacity
             style={styles.appleBtn}
             onPress={handleAppleLogin}
-          />
+            disabled={isLoading}
+            accessibilityLabel="Apple로 계속하기"
+          >
+            <View style={styles.btnIconWrap}>
+              <AppleMark size={21} />
+            </View>
+            <Text style={styles.appleBtnText}>Apple로 계속하기</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -240,8 +254,20 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   appleBtn: {
-    width: '100%',
     height: 56,
+    borderRadius: 12,
+    backgroundColor: colors.ink,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    position: 'relative',
+  },
+  appleBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.white,
+    letterSpacing: -0.3,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
