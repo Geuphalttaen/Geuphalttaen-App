@@ -152,9 +152,15 @@ export default function ReportScreen() {
         return;
       }
     }
-    const result = useCamera
-      ? await ImagePicker.launchCameraAsync({ mediaTypes: 'images', quality: 0.7 })
-      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', quality: 0.7, allowsEditing: false });
+    let result;
+    try {
+      result = useCamera
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: 'images', quality: 0.7 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', quality: 0.7, allowsEditing: false });
+    } catch {
+      Alert.alert('카메라 오류', '카메라를 사용할 수 없습니다. 실기기에서 시도해 주세요.');
+      return;
+    }
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
     if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
