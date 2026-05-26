@@ -7,9 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  ActionSheetIOS,
   ActivityIndicator,
-  Platform,
   StyleSheet,
   Image,
 } from 'react-native';
@@ -21,6 +19,7 @@ import { useAuthStore } from '@/src/features/auth/store';
 import { submitToiletReport, uploadToiletImage } from '@/src/features/toilets/api';
 import { useLocation } from '@/src/features/map/hooks/useLocation';
 import { colors } from '@/src/shared/theme';
+import ImagePickerModal from '@/src/shared/components/ImagePickerModal';
 
 type UploadedImage = { localUri: string; url: string; originalUrl: string };
 type ToiletType = 'PUBLIC' | 'CONVENIENCE_STORE' | 'CAFE' | 'OTHER';
@@ -98,6 +97,7 @@ export default function ReportScreen() {
   const [memo, setMemo] = useState('');
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [pickerModalVisible, setPickerModalVisible] = useState(false);
   // 지도에서 선택한 위치 (없으면 GPS 사용)
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -138,6 +138,7 @@ export default function ReportScreen() {
   }, []);
 
   const launchPicker = useCallback(async (useCamera: boolean) => {
+    setPickerModalVisible(false);
     if (useCamera) {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
@@ -174,22 +175,8 @@ export default function ReportScreen() {
   }, []);
 
   const handleAddImage = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: ['취소', '카메라', '앨범에서 선택'], cancelButtonIndex: 0 },
-        (idx) => {
-          if (idx === 1) launchPicker(true);
-          else if (idx === 2) launchPicker(false);
-        }
-      );
-    } else {
-      Alert.alert('사진 첨부', '', [
-        { text: '카메라', onPress: () => launchPicker(true) },
-        { text: '앨범에서 선택', onPress: () => launchPicker(false) },
-        { text: '취소', style: 'cancel' },
-      ]);
-    }
-  }, [launchPicker]);
+    setPickerModalVisible(true);
+  }, []);
 
   const removeImage = useCallback((localUri: string) => {
     setUploadedImages((prev) => prev.filter((img) => img.localUri !== localUri));
@@ -403,6 +390,13 @@ export default function ReportScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <ImagePickerModal
+        visible={pickerModalVisible}
+        onCamera={() => launchPicker(true)}
+        onLibrary={() => launchPicker(false)}
+        onClose={() => setPickerModalVisible(false)}
+      />
 
       {/* 하단 CTA */}
       <View style={[styles.bottomCta, { paddingBottom: insets.bottom + 12 }]}>
