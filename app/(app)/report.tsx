@@ -143,17 +143,23 @@ export default function ReportScreen() {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
-      quality: 0.8,
+      quality: 0.7,
       allowsEditing: false,
     });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
+    if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
+      Alert.alert('파일 크기 초과', '10MB 이하의 사진을 선택해 주세요.');
+      return;
+    }
     setUploadingCount((c) => c + 1);
     try {
-      const uploaded = await uploadToiletImage(asset.uri, asset.mimeType ?? 'image/jpeg');
+      const mimeType = asset.mimeType ?? 'image/jpeg';
+      const uploaded = await uploadToiletImage(asset.uri, mimeType);
       setUploadedImages((prev) => [...prev, { localUri: asset.uri, ...uploaded }]);
-    } catch {
-      Alert.alert('업로드 실패', '사진 업로드에 실패했습니다. 다시 시도해 주세요.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '사진 업로드에 실패했습니다.';
+      Alert.alert('업로드 실패', message);
     } finally {
       setUploadingCount((c) => c - 1);
     }
