@@ -137,6 +137,7 @@ export default function ReportScreen() {
     setFacilities((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
+  // Low-1: 모든 deps(setPickerModalVisible, setUploadingCount, setUploadedImages)가 useState setter로 항상 안정(stable)하므로 deps 배열 생략 안전
   const launchPicker = useCallback(async (useCamera: boolean) => {
     setPickerModalVisible(false);
     // 모달 슬라이드 다운 애니메이션(~300ms) 완료 후 시스템 다이얼로그 호출
@@ -165,6 +166,7 @@ export default function ReportScreen() {
     }
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
+    // Low-2: fileSize 미제공(일부 Android) 시 스킵 → 서버 20MB 제한이 최종 방어선
     if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
       Alert.alert('파일 크기 초과', '10MB 이하의 사진을 선택해 주세요.');
       return;
