@@ -17,6 +17,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         client_id: process.env.NAVER_MAP_CLIENT_ID ?? '',
       },
     ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission: '사진을 첨부하려면 사진 라이브러리 접근 권한이 필요합니다.',
+      },
+    ],
     'expo-web-browser',
     [
       'expo-splash-screen',
