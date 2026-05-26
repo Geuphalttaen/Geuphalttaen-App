@@ -173,7 +173,9 @@ export default function ReportScreen() {
     }
     setUploadingCount((c) => c + 1);
     try {
-      const mimeType = asset.mimeType ?? 'image/jpeg';
+      // iOS 카메라는 HEIC/HEIF 형식 반환 → 서버 허용 형식(jpeg/png/webp)으로 정규화
+      const rawMime = asset.mimeType ?? 'image/jpeg';
+      const mimeType = ['image/heic', 'image/heif'].includes(rawMime) ? 'image/jpeg' : rawMime;
       const uploaded = await uploadToiletImage(asset.uri, mimeType);
       setUploadedImages((prev) => [...prev, { localUri: asset.uri, ...uploaded }]);
     } catch (err) {

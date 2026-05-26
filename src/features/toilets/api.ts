@@ -72,7 +72,8 @@ export async function submitToiletReport(payload: ReportRequest): Promise<void> 
 }
 
 export async function uploadToiletImage(uri: string, mimeType: string = 'image/jpeg'): Promise<ImageUploadResponse> {
-  const ext = uri.split('.').pop()?.split('?')[0] ?? 'jpg';
+  const mimeToExt: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+  const ext = mimeToExt[mimeType] ?? 'jpg';
   const formData = new FormData();
   formData.append('file', { uri, name: `image.${ext}`, type: mimeType } as unknown as Blob);
   const { data } = await apiClient.post('/api/v1/toilets/images/upload', formData, {
