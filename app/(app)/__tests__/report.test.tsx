@@ -35,11 +35,10 @@ const mockBack = jest.fn();
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 
-const mockLocalSearchParams = jest.fn().mockReturnValue({});
-
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace }),
-  useLocalSearchParams: () => mockLocalSearchParams(),
+  // useFocusEffect는 useEffect로 모킹 — 동기 호출 시 무한 re-render 발생
+  useFocusEffect: (cb: () => void) => { require('react').useEffect(cb, []); }, // eslint-disable-line react-hooks/exhaustive-deps
   Redirect: ({ href }: { href: string }) => {
     const { Text } = require('react-native');
     return <Text testID="redirect">{`Redirect to ${href}`}</Text>;
@@ -48,6 +47,12 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/src/features/auth/store', () => ({
   useAuthStore: jest.fn(),
+}));
+
+// useReportDraftStore 모킹
+const mockClearPendingLocation = jest.fn();
+jest.mock('@/src/features/report/store', () => ({
+  useReportDraftStore: jest.fn(),
 }));
 
 function createWrapper() {
@@ -66,9 +71,14 @@ function createWrapper() {
 describe('ReportScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLocalSearchParams.mockReturnValue({});
     const { useAuthStore } = require('@/src/features/auth/store');
     (useAuthStore as jest.Mock).mockReturnValue({ isAuthenticated: true, isLoading: false });
+
+    const { useReportDraftStore } = require('@/src/features/report/store');
+    (useReportDraftStore as jest.Mock).mockReturnValue({
+      pendingLocation: null,
+      clearPendingLocation: mockClearPendingLocation,
+    });
   });
 
   it('화면 타이틀이 렌더링된다', () => {
@@ -110,11 +120,26 @@ describe('ReportScreen', () => {
     expect(screen.getByText('남성용')).toBeTruthy();
   });
 
+  it('위치 픽커에서 돌아올 때 pendingLocation이 주소·좌표에 반영된다', () => {
+    const { useReportDraftStore } = require('@/src/features/report/store');
+    (useReportDraftStore as jest.Mock).mockReturnValue({
+      pendingLocation: { lat: 37.5665, lng: 126.978, address: '서울특별시 중구' },
+      clearPendingLocation: mockClearPendingLocation,
+    });
+
+    render(<ReportScreen />, { wrapper: createWrapper() });
+
+    // useFocusEffect 즉시 실행 → pendingLocation 반영 → clearPendingLocation 호출
+    expect(mockClearPendingLocation).toHaveBeenCalled();
+    const addressInput = screen.getByPlaceholderText('지도에서 핀 선택 시 자동 입력');
+    expect(addressInput.props.value).toBe('서울특별시 중구');
+  });
+
   it('제보 성공 시 지도 화면으로 replace 이동한다', async () => {
-    mockLocalSearchParams.mockReturnValue({
-      pickedLat: '37.5665',
-      pickedLng: '126.978',
-      pickedAddress: '서울특별시 중구',
+    const { useReportDraftStore } = require('@/src/features/report/store');
+    (useReportDraftStore as jest.Mock).mockReturnValue({
+      pendingLocation: { lat: 37.5665, lng: 126.978, address: '서울특별시 중구' },
+      clearPendingLocation: mockClearPendingLocation,
     });
     mockSubmitReport.mockResolvedValueOnce(undefined);
 
@@ -154,6 +179,12 @@ describe('ReportScreen (비로그인)', () => {
     jest.clearAllMocks();
     const { useAuthStore } = require('@/src/features/auth/store');
     (useAuthStore as jest.Mock).mockReturnValue({ isAuthenticated: false, isLoading: false });
+
+    const { useReportDraftStore } = require('@/src/features/report/store');
+    (useReportDraftStore as jest.Mock).mockReturnValue({
+      pendingLocation: null,
+      clearPendingLocation: mockClearPendingLocation,
+    });
   });
 
   it('비로그인 시 Redirect 컴포넌트가 로그인 화면을 가리킨다', () => {

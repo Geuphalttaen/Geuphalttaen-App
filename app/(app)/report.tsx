@@ -1,5 +1,6 @@
 // 화장실 제보 화면 — 인증 가드 포함
 import React, { useState, useCallback, useEffect } from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -13,13 +14,14 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, Redirect, useLocalSearchParams } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/features/auth/store';
 import { submitToiletReport, uploadToiletImage } from '@/src/features/toilets/api';
 import { useLocation } from '@/src/features/map/hooks/useLocation';
 import { colors } from '@/src/shared/theme';
 import ImagePickerModal from '@/src/shared/components/ImagePickerModal';
+import { useReportDraftStore } from '@/src/features/report/store';
 
 type UploadedImage = { localUri: string; url: string; originalUrl: string };
 type ToiletType = 'PUBLIC' | 'CONVENIENCE_STORE' | 'CAFE' | 'OTHER';
@@ -82,8 +84,7 @@ export default function ReportScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  // 위치 픽커에서 넘어온 좌표 파라미터
-  const { pickedLat, pickedLng, pickedAddress } = useLocalSearchParams<{ pickedLat?: string; pickedLng?: string; pickedAddress?: string }>();
+  const { pendingLocation, clearPendingLocation } = useReportDraftStore();
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
@@ -103,19 +104,16 @@ export default function ReportScreen() {
 
   const { lat, lng } = useLocation();
 
-  // 픽커 파라미터가 유효하면 위치·주소 업데이트
-  useEffect(() => {
-    if (pickedLat && pickedLng) {
-      const parsedLat = parseFloat(pickedLat);
-      const parsedLng = parseFloat(pickedLng);
-      if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
-        setPickedLocation({ lat: parsedLat, lng: parsedLng });
-        if (pickedAddress) {
-          setAddress(pickedAddress);
-        }
+  // 위치 픽커에서 돌아왔을 때 store에서 위치 수신 — router.navigate가 remount를 유발하지 않아 name 등 state 보존
+  useFocusEffect(
+    useCallback(() => {
+      if (pendingLocation) {
+        setPickedLocation({ lat: pendingLocation.lat, lng: pendingLocation.lng });
+        if (pendingLocation.address) setAddress(pendingLocation.address);
+        clearPendingLocation();
       }
-    }
-  }, [pickedLat, pickedLng, pickedAddress]);
+    }, [pendingLocation, clearPendingLocation])
+  );
 
   // 제출에 사용할 최종 좌표: 지도 선택 우선, 없으면 GPS
   const submitLat = pickedLocation?.lat ?? lat;

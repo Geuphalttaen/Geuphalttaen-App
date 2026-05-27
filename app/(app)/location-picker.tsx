@@ -5,6 +5,7 @@ import { NaverMapView, type NaverMapViewRef } from '@mj-studio/react-native-nave
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useLocation } from '@/src/features/map/hooks/useLocation';
+import { useReportDraftStore } from '@/src/features/report/store';
 import { colors } from '@/src/shared/theme';
 
 // 서울 시청 기본 좌표 (GPS 실패 시 폴백)
@@ -23,6 +24,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 export default function LocationPickerScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const setPendingLocation = useReportDraftStore((s) => s.setPendingLocation);
   const mapRef = useRef<NaverMapViewRef>(null);
   const { lat: gpsLat, lng: gpsLng } = useLocation();
 
@@ -86,14 +88,8 @@ export default function LocationPickerScreen() {
       }
     }
     setIsConfirming(false);
-    router.navigate({
-      pathname: '/(app)/report',
-      params: {
-        pickedLat: String(center.lat),
-        pickedLng: String(center.lng),
-        pickedAddress: finalAddress,
-      },
-    });
+    setPendingLocation({ lat: center.lat, lng: center.lng, address: finalAddress });
+    router.back();
   }, [address, center, router]);
 
   const handleBack = useCallback(() => {
