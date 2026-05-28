@@ -13,7 +13,11 @@ export function useAccountActions() {
 
   const logout = useCallback(() => {
     void (async () => {
-      await signOut();
+      try {
+        await signOut();
+      } catch {
+        // signOut 실패해도 로그인 화면으로 이동
+      }
       router.replace('/(auth)/login');
     })();
   }, [signOut, router]);
@@ -38,10 +42,11 @@ export function useAccountActions() {
               // 서버 삭제 성공 후 — signOut 실패 시에도 반드시 캐시 초기화 및 화면 이동
               try {
                 await signOut();
-              } finally {
-                queryClient.clear();
-                router.replace('/(auth)/login');
+              } catch {
+                // signOut 실패는 무시
               }
+              queryClient.clear();
+              router.replace('/(auth)/login');
             })();
           },
         },
