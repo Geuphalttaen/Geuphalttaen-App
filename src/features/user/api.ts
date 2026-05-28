@@ -1,6 +1,6 @@
 // 사용자 API 엔드포인트 + zod 스키마
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/src/shared/lib/client';
 
 export const UserProfileSchema = z.object({
@@ -25,7 +25,7 @@ export const MyReportListSchema = z.array(MyReportSchema);
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type MyReport = z.infer<typeof MyReportSchema>;
 
-async function fetchMyProfile(): Promise<UserProfile> {
+export async function fetchMyProfile(): Promise<UserProfile> {
   const { data } = await apiClient.get('/api/v1/users/me');
   return UserProfileSchema.parse(data);
 }
@@ -46,5 +46,20 @@ export function useMyReports() {
   return useQuery({
     queryKey: ['user', 'reports'],
     queryFn: fetchMyReports,
+  });
+}
+
+async function patchNickname(nickname: string): Promise<UserProfile> {
+  const { data } = await apiClient.patch('/api/v1/users/me', { nickname });
+  return UserProfileSchema.parse(data);
+}
+
+export function useUpdateNickname() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: patchNickname,
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['user', 'profile'], updated);
+    },
   });
 }

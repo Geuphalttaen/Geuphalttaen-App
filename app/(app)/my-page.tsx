@@ -1,5 +1,5 @@
 // 마이페이지 화면
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useMyProfile } from '@/src/features/user/api';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
+import { NicknameModal } from '@/src/features/user/NicknameModal';
 import { colors } from '@/src/shared/theme';
 
 const ChevronRight = () => (
@@ -57,6 +58,7 @@ export default function MyPageScreen() {
   const { signOut } = useAuth();
   const { data: profile, isLoading } = useMyProfile();
 
+  const [nicknameModalVisible, setNicknameModalVisible] = useState(false);
   const avatarChar = profile?.nickname?.charAt(0) ?? '?';
   const isKakao = profile?.provider === 'KAKAO';
 
@@ -147,7 +149,8 @@ export default function MyPageScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>설정</Text>
               <View style={styles.sectionCard}>
-                <Row label="이용 약관" first onPress={() => { WebBrowser.openBrowserAsync('https://www.notion.so/366fbab2ef7381bebbdccbd0a33bcc2f').catch(() => Alert.alert('오류', '페이지를 열 수 없습니다')); }} />
+                <Row label="닉네임 변경" first onPress={() => setNicknameModalVisible(true)} />
+                <Row label="이용 약관" onPress={() => { WebBrowser.openBrowserAsync('https://www.notion.so/366fbab2ef7381bebbdccbd0a33bcc2f').catch(() => Alert.alert('오류', '페이지를 열 수 없습니다')); }} />
                 <Row label="개인정보 처리방침" onPress={() => { WebBrowser.openBrowserAsync('https://www.notion.so/366fbab2ef73816d8123d94d8b518f1e').catch(() => Alert.alert('오류', '페이지를 열 수 없습니다')); }} />
                 <Row label="버전 정보" value="v1.0.0" showChevron={false} last />
               </View>
@@ -162,6 +165,12 @@ export default function MyPageScreen() {
           </>
         )}
       </ScrollView>
+
+      <NicknameModal
+        visible={nicknameModalVisible}
+        currentNickname={profile?.nickname}
+        onClose={() => setNicknameModalVisible(false)}
+      />
     </View>
   );
 }
