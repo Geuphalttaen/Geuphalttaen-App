@@ -1,5 +1,5 @@
 // 리뷰 작성 모달 — 별점 + 텍스트 + 청결도
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   View,
@@ -33,6 +33,14 @@ export function WriteReviewModal({ visible, toiletId, initialReview, onClose, on
   const [cleanlinessScore, setCleanlinessScore] = useState(0);
 
   const { mutateAsync, isPending } = useWriteReview(toiletId, isEditMode ? 'update' : 'create');
+
+  useEffect(() => {
+    if (visible) {
+      setRating(initialReview?.rating ?? 0);
+      setContent(initialReview?.content ?? '');
+      setCleanlinessScore(0);
+    }
+  }, [visible, initialReview]);
 
   const handleSubmit = async () => {
     if (rating === 0) {
