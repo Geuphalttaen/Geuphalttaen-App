@@ -16,13 +16,15 @@ import { colors } from '@/src/shared/theme';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import KakaoLoginButton from '@/src/features/auth/components/KakaoLoginButton';
 import AppleLoginButton from '@/src/features/auth/components/AppleLoginButton';
-import { fetchMyProfile } from '@/src/features/user/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { fetchMyProfile, DEFAULT_NICKNAME, USER_QUERY_KEYS } from '@/src/features/user/api';
 import { NicknameModal } from '@/src/features/user/NicknameModal';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { loginWithKakao, loginWithApple } = useAuth();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [showNicknameModal, setShowNicknameModal] = useState(false);
 
@@ -37,8 +39,8 @@ export default function LoginScreen() {
       const result = await Promise.race([kakaoLogin(), timeoutPromise]);
       clearTimeout(timeoutId);
       await loginWithKakao(result.accessToken);
-      const profile = await fetchMyProfile();
-      if (profile.nickname === '사용자') {
+      const profile = await queryClient.fetchQuery({ queryKey: USER_QUERY_KEYS.profile, queryFn: fetchMyProfile });
+      if (profile.nickname === DEFAULT_NICKNAME) {
         setShowNicknameModal(true);
       } else {
         router.replace('/(app)');
@@ -74,8 +76,8 @@ export default function LoginScreen() {
         throw new Error('Apple 인증 토큰을 가져올 수 없습니다');
       }
       await loginWithApple(credential.identityToken);
-      const profile = await fetchMyProfile();
-      if (profile.nickname === '사용자') {
+      const profile = await queryClient.fetchQuery({ queryKey: USER_QUERY_KEYS.profile, queryFn: fetchMyProfile });
+      if (profile.nickname === DEFAULT_NICKNAME) {
         setShowNicknameModal(true);
       } else {
         router.replace('/(app)');

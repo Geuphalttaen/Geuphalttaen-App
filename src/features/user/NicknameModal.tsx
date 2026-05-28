@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   StyleSheet,
   Alert,
@@ -36,10 +37,13 @@ export function NicknameModal({ visible, currentNickname, onClose, onSuccess }: 
     }
     try {
       await mutateAsync(trimmed);
-      onSuccess?.();
-      onClose();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        onClose();
+      }
     } catch (e) {
-      Alert.alert('오류', (e as Error).message ?? '다시 시도해 주세요.');
+      Alert.alert('오류', e instanceof Error ? e.message : '다시 시도해 주세요.');
     }
   };
 
@@ -49,7 +53,7 @@ export function NicknameModal({ visible, currentNickname, onClose, onSuccess }: 
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => { Keyboard.dismiss(); onClose(); }} />
         <View style={styles.sheet}>
           <Text style={styles.title}>닉네임 설정</Text>
           <Text style={styles.desc}>리뷰에 표시될 닉네임을 입력해 주세요.</Text>

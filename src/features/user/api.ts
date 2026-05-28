@@ -3,6 +3,13 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/src/shared/lib/client';
 
+export const DEFAULT_NICKNAME = '사용자';
+
+export const USER_QUERY_KEYS = {
+  profile: ['user', 'profile'] as const,
+  reports: ['user', 'reports'] as const,
+} as const;
+
 export const UserProfileSchema = z.object({
   nickname: z.string(),
   provider: z.enum(['KAKAO', 'APPLE']),
@@ -37,14 +44,14 @@ async function fetchMyReports(): Promise<MyReport[]> {
 
 export function useMyProfile() {
   return useQuery({
-    queryKey: ['user', 'profile'],
+    queryKey: USER_QUERY_KEYS.profile,
     queryFn: fetchMyProfile,
   });
 }
 
 export function useMyReports() {
   return useQuery({
-    queryKey: ['user', 'reports'],
+    queryKey: USER_QUERY_KEYS.reports,
     queryFn: fetchMyReports,
   });
 }

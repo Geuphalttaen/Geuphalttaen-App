@@ -170,6 +170,10 @@ export default function MyPageScreen() {
         visible={nicknameModalVisible}
         currentNickname={profile?.nickname}
         onClose={() => setNicknameModalVisible(false)}
+        onSuccess={() => {
+          setNicknameModalVisible(false);
+          Alert.alert('완료', '닉네임이 변경되었습니다.');
+        }}
       />
     </View>
   );
