@@ -16,12 +16,17 @@ import { colors } from '@/src/shared/theme';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import KakaoLoginButton from '@/src/features/auth/components/KakaoLoginButton';
 import AppleLoginButton from '@/src/features/auth/components/AppleLoginButton';
+import { useQueryClient } from '@tanstack/react-query';
+import { fetchMyProfile, DEFAULT_NICKNAME, USER_QUERY_KEYS } from '@/src/features/user/api';
+import { NicknameModal } from '@/src/features/user/NicknameModal';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { loginWithKakao, loginWithApple } = useAuth();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [showNicknameModal, setShowNicknameModal] = useState(false);
 
   const handleKakaoLogin = useCallback(async () => {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -34,7 +39,12 @@ export default function LoginScreen() {
       const result = await Promise.race([kakaoLogin(), timeoutPromise]);
       clearTimeout(timeoutId);
       await loginWithKakao(result.accessToken);
-      router.replace('/(app)');
+      const profile = await queryClient.fetchQuery({ queryKey: USER_QUERY_KEYS.profile, queryFn: fetchMyProfile });
+      if (profile.nickname === DEFAULT_NICKNAME) {
+        setShowNicknameModal(true);
+      } else {
+        router.replace('/(app)');
+      }
     } catch (err) {
       clearTimeout(timeoutId);
       const msg = err instanceof Error ? err.message : '';
@@ -66,7 +76,12 @@ export default function LoginScreen() {
         throw new Error('Apple 인증 토큰을 가져올 수 없습니다');
       }
       await loginWithApple(credential.identityToken);
-      router.replace('/(app)');
+      const profile = await queryClient.fetchQuery({ queryKey: USER_QUERY_KEYS.profile, queryFn: fetchMyProfile });
+      if (profile.nickname === DEFAULT_NICKNAME) {
+        setShowNicknameModal(true);
+      } else {
+        router.replace('/(app)');
+      }
     } catch (err) {
       if (err instanceof Error && (err as { code?: string }).code === 'ERR_REQUEST_CANCELED') {
         return;
@@ -121,6 +136,12 @@ export default function LoginScreen() {
       >
         <Text style={styles.browseLinkText}>로그인 없이 둘러보기</Text>
       </TouchableOpacity>
+
+      <NicknameModal
+        visible={showNicknameModal}
+        onClose={() => { setShowNicknameModal(false); router.replace('/(app)'); }}
+        onSuccess={() => { setShowNicknameModal(false); router.replace('/(app)'); }}
+      />
     </View>
   );
 }

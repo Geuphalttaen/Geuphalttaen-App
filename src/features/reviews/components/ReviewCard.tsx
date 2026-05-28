@@ -19,9 +19,10 @@ export function ReviewCard({ review }: ReviewCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <StarRating value={review.rating} size={14} />
+        <Text style={styles.nickname}>{review.nickname ?? '익명'}</Text>
         <Text style={styles.date}>{date}</Text>
       </View>
+      <StarRating value={review.rating} size={14} />
       {review.content ? (
         <Text style={styles.content}>{review.content}</Text>
       ) : null}
@@ -34,12 +35,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    gap: 6,
+    gap: 4,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  nickname: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text1,
+    letterSpacing: -0.2,
   },
   date: {
     fontSize: 11,
@@ -49,5 +56,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text2,
     lineHeight: 20,
+    marginTop: 2,
   },
 });

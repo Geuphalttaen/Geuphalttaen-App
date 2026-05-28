@@ -7,6 +7,7 @@ export const ReviewResponseSchema = z.object({
   id: z.number(),
   toiletId: z.number(),
   userId: z.number(),
+  nickname: z.string().nullable(),
   rating: z.number().min(1).max(5),
   content: z.string().nullable().optional(),
   createdAt: z.string().datetime({ local: true }),
