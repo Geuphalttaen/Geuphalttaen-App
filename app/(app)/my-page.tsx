@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useMyProfile } from '@/src/features/user/api';
-import { useAuth } from '@/src/features/auth/hooks/useAuth';
+import { useAccountActions } from '@/src/features/user/useAccountActions';
 import { NicknameModal } from '@/src/features/user/NicknameModal';
 import { colors } from '@/src/shared/theme';
 
@@ -55,17 +55,12 @@ const Row = ({ label, value, showChevron = true, danger, first, last, onPress }:
 export default function MyPageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signOut } = useAuth();
   const { data: profile, isLoading } = useMyProfile();
+  const { logout, deleteAccount, isDeleting } = useAccountActions();
 
   const [nicknameModalVisible, setNicknameModalVisible] = useState(false);
   const avatarChar = profile?.nickname?.charAt(0) ?? '?';
   const isKakao = profile?.provider === 'KAKAO';
-
-  const handleLogout = async () => {
-    await signOut();
-    router.replace('/(auth)/login');
-  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -156,10 +151,23 @@ export default function MyPageScreen() {
               </View>
             </View>
 
-            {/* 로그아웃 */}
+            {/* 계정 관리 */}
             <View style={styles.logoutWrap}>
               <View style={styles.sectionCard}>
-                <Row label="로그아웃" danger first last showChevron={false} onPress={() => { void handleLogout(); }} />
+                <Row
+                  label="로그아웃"
+                  danger
+                  first
+                  showChevron={false}
+                  onPress={logout}
+                />
+                <Row
+                  label={isDeleting ? '탈퇴 중...' : '회원 탈퇴'}
+                  danger
+                  last
+                  showChevron={false}
+                  onPress={isDeleting ? undefined : deleteAccount}
+                />
               </View>
             </View>
           </>
