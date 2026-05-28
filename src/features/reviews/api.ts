@@ -50,6 +50,24 @@ export async function submitReview(
   return ReviewResponseSchema.parse(data);
 }
 
+export async function fetchMyReview(toiletId: number): Promise<ReviewResponse | null> {
+  const { data } = await apiClient.get(`/api/v1/toilets/${toiletId}/reviews/my`);
+  if (data === null || data === undefined) return null;
+  return ReviewResponseSchema.parse(data);
+}
+
+export async function updateReview(
+  toiletId: number,
+  rating: number,
+  content?: string,
+): Promise<ReviewResponse> {
+  const { data } = await apiClient.patch(`/api/v1/toilets/${toiletId}/reviews/my`, {
+    rating,
+    content: content ?? null,
+  });
+  return ReviewResponseSchema.parse(data);
+}
+
 export async function submitCleanliness(
   toiletId: number,
   score: number,

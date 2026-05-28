@@ -20,6 +20,7 @@ import { formatDistance } from '@/src/shared/lib/formatDistance';
 import { colors } from '@/src/shared/theme';
 import { ReviewSection } from '@/src/features/reviews/components/ReviewSection';
 import { WriteReviewModal } from '@/src/features/reviews/components/WriteReviewModal';
+import { useMyReview } from '@/src/features/reviews/hooks/useMyReview';
 
 interface FacilityCardProps {
   type: 'male' | 'female' | 'disabled' | 'familyRoom';
@@ -47,6 +48,7 @@ export default function DetailScreen() {
   const { toilet, isLoading, error, refetch } = useToiletDetail(toiletId);
   const { isAuthenticated } = useAuthStore();
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const { myReview } = useMyReview(toiletId);
 
   const handleBack = () => router.back();
 
@@ -131,9 +133,8 @@ export default function DetailScreen() {
           </View>
         </View>
 
-        {/* 섹션 01 — 시설 정보 */}
+        {/* 시설 정보 */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>SECTION · 01 · 시설 정보</Text>
           <View style={styles.facilitiesGrid}>
             <FacilityCard type="male" label="남성용" available={toilet.male} />
             <FacilityCard type="female" label="여성용" available={toilet.female} />
@@ -142,9 +143,8 @@ export default function DetailScreen() {
           </View>
         </View>
 
-        {/* 섹션 02 — 리뷰 */}
+        {/* 리뷰 */}
         <View style={styles.reviewSection}>
-          <Text style={styles.sectionLabel}>SECTION · 02 · 리뷰</Text>
           <ReviewSection toiletId={toiletId} />
         </View>
       </ScrollView>
@@ -152,6 +152,7 @@ export default function DetailScreen() {
       <WriteReviewModal
         visible={reviewModalVisible}
         toiletId={toiletId}
+        initialReview={myReview}
         onClose={() => setReviewModalVisible(false)}
         onSuccess={() => setReviewModalVisible(false)}
       />
@@ -167,10 +168,10 @@ export default function DetailScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.ctaBtn}
-          accessibilityLabel="리뷰 작성하기"
+          accessibilityLabel={myReview ? '리뷰 수정하기' : '리뷰 작성하기'}
           onPress={handleWriteReview}
         >
-          <Text style={styles.ctaBtnText}>★ 리뷰 작성하기</Text>
+          <Text style={styles.ctaBtnText}>{myReview ? '★ 리뷰 수정하기' : '★ 리뷰 작성하기'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -301,14 +302,6 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.primary,
-    letterSpacing: 1.6,
-    textTransform: 'uppercase',
-    marginBottom: 12,
   },
   facilitiesGrid: {
     flexDirection: 'row',

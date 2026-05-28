@@ -1,5 +1,5 @@
 // 리뷰 작성 모달 — 별점 + 텍스트 + 청결도
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   View,
@@ -15,21 +15,32 @@ import {
 } from 'react-native';
 import { colors } from '@/src/shared/theme';
 import { useWriteReview } from '@/src/features/reviews/hooks/useWriteReview';
+import { type ReviewResponse } from '@/src/features/reviews/api';
 import { StarRating } from './StarRating';
 
 interface WriteReviewModalProps {
   visible: boolean;
   toiletId: number;
+  initialReview?: ReviewResponse | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function WriteReviewModal({ visible, toiletId, onClose, onSuccess }: WriteReviewModalProps) {
-  const [rating, setRating] = useState(0);
-  const [content, setContent] = useState('');
+export function WriteReviewModal({ visible, toiletId, initialReview, onClose, onSuccess }: WriteReviewModalProps) {
+  const isEditMode = !!initialReview;
+  const [rating, setRating] = useState(initialReview?.rating ?? 0);
+  const [content, setContent] = useState(initialReview?.content ?? '');
   const [cleanlinessScore, setCleanlinessScore] = useState(0);
 
-  const { mutateAsync, isPending } = useWriteReview(toiletId);
+  const { mutateAsync, isPending } = useWriteReview(toiletId, isEditMode ? 'update' : 'create');
+
+  useEffect(() => {
+    if (visible) {
+      setRating(initialReview?.rating ?? 0);
+      setContent(initialReview?.content ?? '');
+      setCleanlinessScore(0);
+    }
+  }, [visible, initialReview]);
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -46,15 +57,15 @@ export function WriteReviewModal({ visible, toiletId, onClose, onSuccess }: Writ
       setContent('');
       setCleanlinessScore(0);
       onSuccess();
-    } catch {
-      Alert.alert('오류', '리뷰 작성에 실패했습니다. 다시 시도해 주세요.');
+    } catch (e) {
+      Alert.alert('오류', (e as Error).message ?? '다시 시도해 주세요.');
     }
   };
 
   const handleClose = () => {
     Keyboard.dismiss();
-    setRating(0);
-    setContent('');
+    setRating(initialReview?.rating ?? 0);
+    setContent(initialReview?.content ?? '');
     setCleanlinessScore(0);
     onClose();
   };
@@ -69,7 +80,7 @@ export function WriteReviewModal({ visible, toiletId, onClose, onSuccess }: Writ
         <View style={styles.sheet}>
           <View style={styles.handle} />
 
-          <Text style={styles.title}>리뷰 작성</Text>
+          <Text style={styles.title}>{isEditMode ? '리뷰 수정' : '리뷰 작성'}</Text>
 
           {/* 별점 */}
           <View style={styles.field}>
@@ -113,7 +124,7 @@ export function WriteReviewModal({ visible, toiletId, onClose, onSuccess }: Writ
               {isPending ? (
                 <ActivityIndicator size="small" color={colors.white} />
               ) : (
-                <Text style={styles.submitBtnText}>등록</Text>
+                <Text style={styles.submitBtnText}>{isEditMode ? '수정' : '등록'}</Text>
               )}
             </TouchableOpacity>
           </View>
