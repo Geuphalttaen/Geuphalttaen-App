@@ -48,7 +48,7 @@ export default function DetailScreen() {
   const { toilet, isLoading, error, refetch } = useToiletDetail(toiletId);
   const { isAuthenticated } = useAuthStore();
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
-  const { myReview } = useMyReview(toiletId);
+  const { myReview, myCleanliness } = useMyReview(toiletId);
 
   const handleBack = () => router.back();
 
@@ -153,6 +153,7 @@ export default function DetailScreen() {
         visible={reviewModalVisible}
         toiletId={toiletId}
         initialReview={myReview}
+        initialCleanlinessScore={myCleanliness?.score}
         onClose={() => setReviewModalVisible(false)}
         onSuccess={() => setReviewModalVisible(false)}
       />
