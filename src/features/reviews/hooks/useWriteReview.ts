@@ -23,8 +23,9 @@ export function useWriteReview(toiletId: number, mode: 'create' | 'update' = 'cr
       }
       return review;
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['reviews', toiletId] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['reviews', toiletId] });
+      await queryClient.invalidateQueries({ queryKey: ['cleanliness', toiletId] });
     },
   });
 
