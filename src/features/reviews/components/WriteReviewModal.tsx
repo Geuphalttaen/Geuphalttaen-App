@@ -22,15 +22,16 @@ interface WriteReviewModalProps {
   visible: boolean;
   toiletId: number;
   initialReview?: ReviewResponse | null;
+  initialCleanlinessScore?: number | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function WriteReviewModal({ visible, toiletId, initialReview, onClose, onSuccess }: WriteReviewModalProps) {
+export function WriteReviewModal({ visible, toiletId, initialReview, initialCleanlinessScore, onClose, onSuccess }: WriteReviewModalProps) {
   const isEditMode = !!initialReview;
   const [rating, setRating] = useState(initialReview?.rating ?? 0);
   const [content, setContent] = useState(initialReview?.content ?? '');
-  const [cleanlinessScore, setCleanlinessScore] = useState(0);
+  const [cleanlinessScore, setCleanlinessScore] = useState(initialCleanlinessScore ?? 0);
 
   const { mutateAsync, isPending } = useWriteReview(toiletId, isEditMode ? 'update' : 'create');
 
@@ -38,9 +39,9 @@ export function WriteReviewModal({ visible, toiletId, initialReview, onClose, on
     if (visible) {
       setRating(initialReview?.rating ?? 0);
       setContent(initialReview?.content ?? '');
-      setCleanlinessScore(0);
+      setCleanlinessScore(initialCleanlinessScore ?? 0);
     }
-  }, [visible, initialReview]);
+  }, [visible, initialReview, initialCleanlinessScore]);
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -66,7 +67,7 @@ export function WriteReviewModal({ visible, toiletId, initialReview, onClose, on
     Keyboard.dismiss();
     setRating(initialReview?.rating ?? 0);
     setContent(initialReview?.content ?? '');
-    setCleanlinessScore(0);
+    setCleanlinessScore(initialCleanlinessScore ?? 0);
     onClose();
   };
 

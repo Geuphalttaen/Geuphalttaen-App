@@ -68,6 +68,12 @@ export async function updateReview(
   return ReviewResponseSchema.parse(data);
 }
 
+export async function fetchMyCleanliness(toiletId: number): Promise<CleanlinessResponse | null> {
+  const { data } = await apiClient.get(`/api/v1/toilets/${toiletId}/cleanliness/my`);
+  if (data === null || data === undefined) return null;
+  return CleanlinessResponseSchema.parse(data);
+}
+
 export async function submitCleanliness(
   toiletId: number,
   score: number,
