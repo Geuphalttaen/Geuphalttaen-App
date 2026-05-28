@@ -48,7 +48,7 @@ export default function DetailScreen() {
   const { toilet, isLoading, error, refetch } = useToiletDetail(toiletId);
   const { isAuthenticated } = useAuthStore();
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
-  const { myReview } = useMyReview(toiletId);
+  const { myReview, myCleanliness, isLoading: myReviewLoading } = useMyReview(toiletId);
 
   const handleBack = () => router.back();
 
@@ -153,6 +153,7 @@ export default function DetailScreen() {
         visible={reviewModalVisible}
         toiletId={toiletId}
         initialReview={myReview}
+        initialCleanlinessScore={myCleanliness?.score}
         onClose={() => setReviewModalVisible(false)}
         onSuccess={() => setReviewModalVisible(false)}
       />
@@ -167,9 +168,10 @@ export default function DetailScreen() {
           <Text style={styles.ctaBtnSecondaryText}>↗ 길찾기</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.ctaBtn}
+          style={[styles.ctaBtn, myReviewLoading && styles.ctaBtnDisabled]}
           accessibilityLabel={myReview ? '리뷰 수정하기' : '리뷰 작성하기'}
           onPress={handleWriteReview}
+          disabled={myReviewLoading}
         >
           <Text style={styles.ctaBtnText}>{myReview ? '★ 리뷰 수정하기' : '★ 리뷰 작성하기'}</Text>
         </TouchableOpacity>
@@ -395,5 +397,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
     letterSpacing: -0.3,
+  },
+  ctaBtnDisabled: {
+    opacity: 0.5,
   },
 });
