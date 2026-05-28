@@ -66,7 +66,21 @@ export function useUpdateNickname() {
   return useMutation({
     mutationFn: patchNickname,
     onSuccess: (updated) => {
-      queryClient.setQueryData(['user', 'profile'], updated);
+      queryClient.setQueryData(USER_QUERY_KEYS.profile, updated);
+    },
+  });
+}
+
+async function deleteAccount(): Promise<void> {
+  await apiClient.delete('/api/v1/users/me');
+}
+
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: () => {
+      queryClient.clear();
     },
   });
 }
