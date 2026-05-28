@@ -1,0 +1,79 @@
+// axios 인스턴스 + 인터셉터
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+import { useAuthStore } from '@/src/features/auth/store';
+
+export const ACCESS_TOKEN_KEY = 'access_token';
+export const REFRESH_TOKEN_KEY = 'refresh_token';
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+
+export const apiClient = axios.create({
+  baseURL: BASE_URL,
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// 요청 인터셉터 — 저장된 토큰을 Authorization 헤더에 첨부
+apiClient.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    if (token) {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    }
+    return config;
+  },
+  (error: AxiosError) => Promise.reject(error),
+);
+
+// 응답 인터셉터 — ApiResponse 언랩 + 401 시 토큰 갱신 후 재시도
+apiClient.interceptors.response.use(
+  (response) => {
+    // 서버가 { success, data } 형태로 감싸므로 data 필드를 꺼내 반환
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
+  async (error: AxiosError<{ error?: { message?: string } }>) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    // 서버 응답의 error.message가 있으면 axios 기본 메시지 대신 사용
+    const serverMessage = error.response?.data?.error?.message;
+    if (serverMessage) {
+      error.message = serverMessage;
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+        if (!refreshToken) {
+          await useAuthStore.getState().clearTokens();
+          router.replace('/(auth)/login');
+          return Promise.reject(error);
+        }
+        const { data } = await axios.post(
+          `${BASE_URL}/api/v1/auth/refresh`,
+          { refreshToken },
+        );
+        // 서버가 { success, data: { accessToken } } 형식으로 반환
+        const accessToken: unknown = data?.accessToken ?? data;
+        if (typeof accessToken !== 'string') {
+          throw new Error('토큰 갱신 응답이 올바르지 않습니다');
+        }
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+        originalRequest.headers.set('Authorization', `Bearer ${accessToken}`);
+        return apiClient(originalRequest);
+      } catch {
+        await useAuthStore.getState().clearTokens();
+        router.replace('/(auth)/login');
+        return Promise.reject(error);
+      }
+    }
+    return Promise.reject(error);
+  },
+);
