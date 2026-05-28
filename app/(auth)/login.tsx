@@ -26,12 +26,22 @@ export default function LoginScreen() {
   const handleKakaoLogin = useCallback(async () => {
     try {
       setIsLoading(true);
-      const result = await kakaoLogin();
+      // SDK가 취소 시 resolve/reject 안 하는 엣지케이스 대비 60초 타임아웃
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('KAKAO_TIMEOUT')), 60_000),
+      );
+      const result = await Promise.race([kakaoLogin(), timeoutPromise]);
       await loginWithKakao(result.accessToken);
       router.replace('/(app)');
     } catch (err) {
-      const message = err instanceof Error ? err.message : '카카오 로그인에 실패했습니다';
-      Alert.alert('로그인 실패', message);
+      const msg = err instanceof Error ? err.message : '';
+      const isCancel =
+        msg === 'KAKAO_TIMEOUT' ||
+        msg.toLowerCase().includes('cancel') ||
+        msg.includes('취소');
+      if (!isCancel) {
+        Alert.alert('로그인 실패', msg || '카카오 로그인에 실패했습니다');
+      }
     } finally {
       setIsLoading(false);
     }
