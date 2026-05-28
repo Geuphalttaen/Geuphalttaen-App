@@ -12,8 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useMyProfile, useDeleteAccount } from '@/src/features/user/api';
-import { useAuth } from '@/src/features/auth/hooks/useAuth';
+import { useMyProfile } from '@/src/features/user/api';
+import { useAccountActions } from '@/src/features/user/useAccountActions';
 import { NicknameModal } from '@/src/features/user/NicknameModal';
 import { colors } from '@/src/shared/theme';
 
@@ -55,41 +55,12 @@ const Row = ({ label, value, showChevron = true, danger, first, last, onPress }:
 export default function MyPageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signOut } = useAuth();
   const { data: profile, isLoading } = useMyProfile();
-  const { mutateAsync: deleteAccountMutate, isPending: isDeleting } = useDeleteAccount();
+  const { logout, deleteAccount, isDeleting } = useAccountActions();
 
   const [nicknameModalVisible, setNicknameModalVisible] = useState(false);
   const avatarChar = profile?.nickname?.charAt(0) ?? '?';
   const isKakao = profile?.provider === 'KAKAO';
-
-  const handleLogout = async () => {
-    await signOut();
-    router.replace('/(auth)/login');
-  };
-
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      '회원 탈퇴',
-      '탈퇴하면 작성한 리뷰와 계정 정보가 모두 삭제됩니다.\n정말 탈퇴하시겠습니까?',
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '탈퇴',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAccountMutate();
-              await signOut();
-              router.replace('/(auth)/login');
-            } catch (e) {
-              Alert.alert('오류', e instanceof Error ? e.message : '다시 시도해 주세요.');
-            }
-          },
-        },
-      ],
-    );
-  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -188,14 +159,14 @@ export default function MyPageScreen() {
                   danger
                   first
                   showChevron={false}
-                  onPress={() => { void handleLogout(); }}
+                  onPress={logout}
                 />
                 <Row
                   label={isDeleting ? '탈퇴 중...' : '회원 탈퇴'}
                   danger
                   last
                   showChevron={false}
-                  onPress={isDeleting ? undefined : handleDeleteAccount}
+                  onPress={isDeleting ? undefined : deleteAccount}
                 />
               </View>
             </View>
