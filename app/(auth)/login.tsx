@@ -24,21 +24,27 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleKakaoLogin = useCallback(async () => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       setIsLoading(true);
-      // SDK가 취소 시 resolve/reject 안 하는 엣지케이스 대비 60초 타임아웃
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('KAKAO_TIMEOUT')), 60_000),
-      );
+      // SDK가 취소 후 promise를 resolve/reject하지 않는 엣지케이스 대비 타임아웃
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('KAKAO_TIMEOUT')), 60_000);
+      });
       const result = await Promise.race([kakaoLogin(), timeoutPromise]);
+      clearTimeout(timeoutId);
       await loginWithKakao(result.accessToken);
       router.replace('/(app)');
     } catch (err) {
+      clearTimeout(timeoutId);
       const msg = err instanceof Error ? err.message : '';
-      const isCancel =
-        msg === 'KAKAO_TIMEOUT' ||
-        msg.toLowerCase().includes('cancel') ||
-        msg.includes('취소');
+      if (msg === 'KAKAO_TIMEOUT') {
+        // 타임아웃: 사용자가 이미 전환한 상태이므로 조용히 종료
+        return;
+      }
+      // Kakao SDK는 취소 에러에 별도 code를 제공하지 않아 message 기반 감지
+      // (Apple 로그인은 ERR_REQUEST_CANCELED code로 식별 가능한 것과 대비)
+      const isCancel = msg.toLowerCase().includes('cancel') || msg.includes('취소');
       if (!isCancel) {
         Alert.alert('로그인 실패', msg || '카카오 로그인에 실패했습니다');
       }
